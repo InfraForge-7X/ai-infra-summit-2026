@@ -2,85 +2,71 @@
 
 > Forging the infrastructure behind intelligent systems.
 
-**InfraForge 7X** is a team participating in the **AI Infra Summit Hackathon 2026**.
+**InfraForge 7X** is building **AFRI-EDGE**, an infrastructure-aware adaptive runtime that dynamically routes real-time AI workloads across Local, Edge, and Cloud environments.
 
-We are exploring innovative AI infrastructure architectures focused on making intelligent systems more efficient, adaptive, reliable, and practical across different computing environments.
+## AI Infra Summit Hackathon 2026
 
----
+This repository is the central engineering workspace for the team.
 
-## 🚀 AI Infra Summit Hackathon 2026
+### Current MVP
 
-This repository is the central workspace of InfraForge 7X for the hackathon.
+**Use case:** Intelligent real-time video analytics.
 
-It is used to organize our:
+**Core principle:**
 
-- Ideas and concepts
-- Technical research
-- Architecture exploration
-- Experiments and prototypes
-- Team decisions
-- Development work
-- Documentation
+> AGENTOS decides what to execute. AFRI-EDGE decides where and how to execute it.
 
----
+The MVP evaluates workload requirements and real-time infrastructure conditions, selects an eligible execution target, routes the workload, observes execution, and can re-evaluate when conditions change.
 
-## 🎯 Current Phase
+### Architecture
 
-**Status: Ideation & Architecture Exploration**
+```text
+AI Request
+    ↓
+Workload Profile
+    ↓
+Infrastructure State
+    ↓
+AFRI-EDGE Decision Engine
+    ↓
+Local / Edge / Cloud
+    ↓
+Execution
+    ↓
+Feedback & Re-evaluation
+```
 
-We are currently evaluating different AI infrastructure directions and identifying the architecture that provides the strongest combination of:
-
-- Technical innovation
-- Infrastructure relevance
-- Real-world usefulness
-- Demonstrability
-- Feasibility
-- Hackathon alignment
-
-The final project has not yet been selected.
-
----
-
-## 🧠 Areas of Exploration
-
-Our current exploration includes areas such as:
-
-- AI Agents & Orchestration
-- Edge AI
-- Local / Edge / Cloud Computing
-- Intelligent Workload Routing
-- Visual AI & VLMs
-- AI Infrastructure Optimization
-- Resource-aware AI Systems
-
-These areas are exploratory and may evolve as the team evaluates the available hackathon opportunities and requirements.
-
----
-
-## 👥 Team
-
-**InfraForge 7X** is a collaborative team of developers, AI engineers, infrastructure-focused contributors, and other technical profiles working together for the hackathon.
-
-Team information and responsibilities are maintained in [`team/`](team/).
-
----
-
-## 📂 Repository Structure
+### Repository Structure
 
 ```text
 .
 ├── README.md
-│
 ├── docs/
-│   ├── README.md
-│   └── research/
-│       └── README.md
-│
+├── research/
 ├── ideas/
-│   └── README.md
-│
 ├── decisions/
-│   └── README.md
-│
-└── team/
-    └── README.md
+├── team/
+├── src/
+│   ├── core/
+│   ├── adapters/
+│   ├── monitoring/
+│   └── api/
+├── dashboard/
+├── tests/
+├── deployment/
+└── docker-compose.yml
+```
+
+### Development
+
+The initial runtime uses **Python 3.11 + FastAPI** and is containerized with Docker/Docker Compose.
+
+The first vertical slice is the routing flow:
+
+`POST /route → Workload Profile → Infrastructure State → Decision Engine → Routing Decision`
+
+### Engineering Workflow
+
+`Issue → Feature Branch → Development → Tests → Pull Request → Review → Merge → Integration → Validation`
+
+**Definition of Done:** Implemented + Tested + Integrated.
