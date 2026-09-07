@@ -2,7 +2,7 @@
 
 > Forging the infrastructure behind intelligent systems.
 
-**InfraForge 7X** is building **AFRI-EDGE**, an infrastructure-aware adaptive runtime that dynamically routes real-time AI workloads across Local, Edge, and Cloud environments.
+**InfraForge 7X** is building **AFRI-EDGE**, an infrastructure-aware, workload-agnostic adaptive runtime for intelligent AI execution across Local, Edge, and Cloud environments.
 
 ## AI Infra Summit Hackathon 2026
 
@@ -10,7 +10,7 @@ This repository is the central engineering workspace for the team.
 
 ### Current MVP
 
-**Use case:** Intelligent real-time video analytics.
+**Primary use case:** Intelligent real-time video analytics.
 
 **Core principle:**
 
@@ -18,20 +18,29 @@ This repository is the central engineering workspace for the team.
 
 The MVP evaluates workload requirements and real-time infrastructure conditions, selects an eligible execution target, routes the workload, observes execution, and can re-evaluate when conditions change.
 
+### Competitive Extensions
+
+- **SiMa.ai** — optional Edge / Physical AI execution adapter for compatible vision workloads.
+- **Speechmatics** — optional speech capability demonstrating that the same routing core can handle another AI modality.
+
+Sponsor technologies are adapters/capabilities, not hard-coded dependencies. The generic AFRI-EDGE MVP remains runnable without sponsor hardware or APIs.
+
 ### Architecture
 
 ```text
 AI Request
     ↓
-Workload Profile
+AGENTOS / Orchestrator
     ↓
-Infrastructure State
+Workload Profile
     ↓
 AFRI-EDGE Decision Engine
     ↓
 Local / Edge / Cloud
     ↓
-Execution
+Execution Router + Adapters
+    ↓
+AI Workload Execution
     ↓
 Feedback & Re-evaluation
 ```
