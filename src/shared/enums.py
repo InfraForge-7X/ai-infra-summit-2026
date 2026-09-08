@@ -9,11 +9,14 @@ from enum import Enum
 class WorkloadType(str, Enum):
     """Type of AI workload to be processed.
 
-    REAL_TIME_VIDEO is the canonical MVP workload for video analytics.
-    SPEECH and BATCH_INFERENCE provide extensibility for future use cases.
+    REAL_TIME_VIDEO is the canonical MVP workload. SPEECH and BATCH_INFERENCE
+    are reserved for future workload extensions. VIDEO_INFERENCE is retained
+    as a legacy compatibility value for the current test/API surface and should
+    not be used for new workload profiles.
     """
 
     REAL_TIME_VIDEO = "real_time_video"
+    VIDEO_INFERENCE = "video_inference"  # Legacy compatibility; use REAL_TIME_VIDEO for new work.
     SPEECH = "speech"
     BATCH_INFERENCE = "batch_inference"
 
