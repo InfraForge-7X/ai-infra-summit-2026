@@ -33,7 +33,7 @@ class TestWorkloadProfile:
         """Test creating a valid WorkloadProfile."""
         profile = WorkloadProfile(
             task_id="task-001",
-            workload_type=WorkloadType.VIDEO_INFERENCE,
+            workload_type=WorkloadType.REAL_TIME_VIDEO,
             model="yolo",
             input_size=1920,
             latency_requirement=100,
@@ -42,7 +42,7 @@ class TestWorkloadProfile:
             priority=Priority.HIGH,
         )
         assert profile.task_id == "task-001"
-        assert profile.workload_type == WorkloadType.VIDEO_INFERENCE
+        assert profile.workload_type == WorkloadType.REAL_TIME_VIDEO
         assert profile.model == "yolo"
         assert profile.input_size == 1920
         assert profile.latency_requirement == 100
@@ -67,7 +67,7 @@ class TestWorkloadProfile:
         """Test creating WorkloadProfile with string enum values."""
         profile = WorkloadProfile(
             task_id="task-003",
-            workload_type="video_inference",
+            workload_type="real_time_video",
             model="yolo",
             input_size=1920,
             latency_requirement=100,
@@ -75,14 +75,14 @@ class TestWorkloadProfile:
             privacy="standard",
             priority="high",
         )
-        assert profile.workload_type == WorkloadType.VIDEO_INFERENCE
+        assert profile.workload_type == WorkloadType.REAL_TIME_VIDEO
         assert profile.compute_requirement == ComputeRequirement.GPU
 
     def test_missing_required_task_id(self) -> None:
         """Test that missing task_id raises ValidationError."""
         with pytest.raises(ValidationError) as exc_info:
             WorkloadProfile(
-                workload_type=WorkloadType.VIDEO_INFERENCE,
+                workload_type=WorkloadType.REAL_TIME_VIDEO,
                 model="yolo",
                 input_size=1920,
                 latency_requirement=100,
@@ -95,7 +95,7 @@ class TestWorkloadProfile:
         with pytest.raises(ValidationError) as exc_info:
             WorkloadProfile(
                 task_id="",
-                workload_type=WorkloadType.VIDEO_INFERENCE,
+                workload_type=WorkloadType.REAL_TIME_VIDEO,
                 model="yolo",
                 input_size=1920,
                 latency_requirement=100,
@@ -108,7 +108,7 @@ class TestWorkloadProfile:
         with pytest.raises(ValidationError) as exc_info:
             WorkloadProfile(
                 task_id="task-001",
-                workload_type=WorkloadType.VIDEO_INFERENCE,
+                workload_type=WorkloadType.REAL_TIME_VIDEO,
                 model="yolo",
                 input_size=0,
                 latency_requirement=100,
@@ -121,7 +121,7 @@ class TestWorkloadProfile:
         with pytest.raises(ValidationError) as exc_info:
             WorkloadProfile(
                 task_id="task-001",
-                workload_type=WorkloadType.VIDEO_INFERENCE,
+                workload_type=WorkloadType.REAL_TIME_VIDEO,
                 model="yolo",
                 input_size=-100,
                 latency_requirement=100,
@@ -134,7 +134,7 @@ class TestWorkloadProfile:
         with pytest.raises(ValidationError) as exc_info:
             WorkloadProfile(
                 task_id="task-001",
-                workload_type=WorkloadType.VIDEO_INFERENCE,
+                workload_type=WorkloadType.REAL_TIME_VIDEO,
                 model="yolo",
                 input_size=1920,
                 latency_requirement=0,
@@ -160,7 +160,7 @@ class TestWorkloadProfile:
         with pytest.raises(ValidationError) as exc_info:
             WorkloadProfile(
                 task_id="task-001",
-                workload_type=WorkloadType.VIDEO_INFERENCE,
+                workload_type=WorkloadType.REAL_TIME_VIDEO,
                 model="yolo",
                 input_size=1920,
                 latency_requirement=100,
@@ -173,7 +173,7 @@ class TestWorkloadProfile:
         with pytest.raises(ValidationError) as exc_info:
             WorkloadProfile(
                 task_id="task-001",
-                workload_type=WorkloadType.VIDEO_INFERENCE,
+                workload_type=WorkloadType.REAL_TIME_VIDEO,
                 model="yolo",
                 input_size=1920,
                 latency_requirement=100,
@@ -612,7 +612,6 @@ class TestEnumValues:
     def test_workload_types(self) -> None:
         """Test all WorkloadType values."""
         assert WorkloadType.REAL_TIME_VIDEO.value == "real_time_video"
-        assert WorkloadType.VIDEO_INFERENCE.value == "video_inference"
         assert WorkloadType.SPEECH.value == "speech"
         assert WorkloadType.BATCH_INFERENCE.value == "batch_inference"
 
