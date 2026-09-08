@@ -181,7 +181,7 @@ Blueprint → GitHub Issue → Owner → Feature Branch → Development
 ## 10. Demo Direction
 
 Planned demo sequence:
-1. Run the static baseline (fixed/fixed destination)
+1. Run the static baseline (fixed destination)
 2. AFRI-EDGE selects the best target under normal conditions
 3. Trigger Edge degradation → observe explainable rerouting
 4. (Optional) Demonstrate SiMa.ai Edge execution
@@ -194,13 +194,6 @@ comparative claims must come from controlled experiments run under identical sce
 
 ---
 
-## Open Questions / To Confirm With Team
-
-- [ ] Current status of Task #2 (Shared Data Models) and Task #6 (Decision Engine) —
-      needed before this doc can describe *implemented* (vs. planned) behavior in detail
-- [ ] Preferred location for this file in the repo (`/docs/README.md` vs root `README.md`)
-- [ ] Whether Dashboard section should stay high-level here or link out to a separate doc once built
-
----
-*This document reflects only what is defined in Blueprint v1.1. No implementation details or
-results beyond what is stated above have been assumed or invented.*
+*This document reflects only what is defined in Blueprint v1.1 and the verified repository
+state at the time of this update. No implementation results beyond that state have been
+assumed or invented.*
