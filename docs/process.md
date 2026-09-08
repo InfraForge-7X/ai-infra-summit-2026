@@ -141,18 +141,5 @@ platform — this is a hard guardrail, not a soft preference.
 
 ---
 
-## Open Questions / To Confirm With Team
-
-- [x] Current merge status of #2 and #6 — confirmed via GitHub: #2 in progress (PR #13
-      open, under review), #6 not started, blocked on #2/#3/#5
-- [x] Whether Part 1 and Part 2 should merge or stay split — confirmed with Tsadok: **keep
-      as two separate documents under `/docs/`**
-- [ ] Confirm demo script above is still current — Section 29.6 of the Blueprint is the
-      source and may already be superseded by team discussion
-- [ ] Do one final GitHub status check immediately before pushing the PR, so the
-      documentation reflects repo state at the moment of the PR (PR #13 could merge or
-      change status between now and push)
-
----
-*Sourced entirely from Blueprint v1.1, Sections 22–29. No status, results, or team
-decisions beyond what's stated in the Blueprint have been assumed.*
+*This document is based on Blueprint v1.1 and the verified repository state at the time of
+this update. Status and implementation claims are not inferred beyond GitHub evidence.*
