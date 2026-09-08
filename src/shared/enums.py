@@ -14,7 +14,6 @@ class WorkloadType(str, Enum):
     """
 
     REAL_TIME_VIDEO = "real_time_video"
-    VIDEO_INFERENCE = "video_inference"
     SPEECH = "speech"
     BATCH_INFERENCE = "batch_inference"
 
