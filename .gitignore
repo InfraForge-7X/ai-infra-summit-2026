@@ -5,3 +5,7 @@ __pycache__/
 venv/
 .env
 .DS_Store
+
+# Figma page exports and the standalone HTML prototype. Reference material for
+# the dashboard design, ~3MB of SVG, kept locally rather than in the repo.
+design/

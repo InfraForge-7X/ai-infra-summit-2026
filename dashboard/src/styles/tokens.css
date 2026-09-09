@@ -1,0 +1,180 @@
+/**
+ * AFRI-EDGE dashboard — design tokens.
+ *
+ * Every value here was measured off the Figma frames:
+ *   5798:2      Control Room — running on CLOUD
+ *   5808:17014  Control Room — running on LOCAL
+ *   5808:17345  Control Room — LOCAL, baseline populated
+ *   5808:17789  Demo controls drawer
+ *
+ * Rule for this codebase: component stylesheets consume var(--…) only.
+ * A raw hex, px or shadow in a *.module.css file is a bug, not a shortcut.
+ */
+
+:root {
+  /* ---------------------------------------------------------------- type */
+  --font-sans: 'General Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --fs-2xs: 10px;   /* tags, "Live" pill, clock */
+  --fs-xs: 11px;    /* environment metric values */
+  --fs-sm: 12px;    /* environment metric labels, history, tile labels */
+  --fs-md: 14px;    /* body, buttons, chips, reasons */
+  --fs-base: 16px;  /* freshness line, meter end labels */
+  --fs-lg: 18px;    /* card titles, environment names */
+  --fs-xl: 20px;    /* section titles */
+  --fs-2xl: 24px;   /* metric tile values, brand */
+  --fs-3xl: 36px;   /* page title (reserved) */
+  --fs-4xl: 40px;   /* target name, routing score */
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  --lh-none: normal;
+  --lh-ui: 1.5;      /* buttons, tags, chips */
+  --lh-body: 24px;   /* 16px body */
+  --lh-card: 26px;   /* 18px card titles, reason rows */
+  --lh-display: 44px;/* 36px and 40px display */
+
+  --ls-display: -0.5px;
+
+  /* -------------------------------------------------------------- colour */
+  --color-black: #000000;
+  --color-white: #ffffff;
+
+  --color-page: #f3f3f3;      /* topbar, band fills, bar tracks */
+  --color-surface: #ffffff;   /* cards */
+  --color-tile: #f9f9f9;      /* metric tiles, baseline note */
+  --color-border: #e5e7eb;    /* ghost button and chip borders */
+
+  --color-charcoal: #2d2d2d;  /* card titles, environment labels */
+  --color-muted: #6e6e6e;     /* environment metric values */
+  --color-faint: #666666;     /* meter end labels */
+  --color-body: rgba(29, 30, 32, 0.88);   /* section ledes */
+  --color-unit: rgba(29, 30, 32, 0.52);   /* ms / % suffixes */
+  --color-strong: #1d1e20;    /* metric tile text */
+  --color-heading: #100070;   /* guide + baseline headings */
+  --color-on-accent: #f1f1f1; /* caption on the target card */
+
+  /* Execution targets. These three are the product's core concept. */
+  --color-local: #0e7c63;
+  --color-edge: #9c5b06;
+  --color-cloud: #3348b8;
+
+  --color-primary: #3348b8;
+  --color-accent-green: #34c759;
+
+  /* Not in the Figma frames — carried from the prototype for the failure
+     states in PR 2. Flagged as awaiting design. */
+  --color-fail: #b8352b;
+
+  /* ------------------------------------------------------------- spacing */
+  --space-4: 4px;
+  --space-5: 5px;
+  --space-6: 6px;
+  --space-7: 7px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-15: 15px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-19: 19px;
+  --space-20: 20px;
+  --space-21: 21px;
+  --space-24: 24px;
+  --space-25: 25px;
+  --space-26: 26px;
+  --space-27: 27px;
+  --space-28: 28px;
+  --space-30: 30px;
+  --space-34: 34px;
+  --space-40: 40px;
+
+  /* -------------------------------------------------------------- radius */
+  --radius-xs: 4px;   /* bar tracks and fills */
+  --radius-sm: 5px;   /* tags, primary button */
+  --radius-md: 8px;   /* ghost buttons, chips, tiles, environment cards */
+  --radius-lg: 10px;  /* top bands */
+  --radius-xl: 12px;  /* activity cards */
+  --radius-2xl: 16px; /* decision band cards */
+
+  /* ------------------------------------------------------------- shadows */
+  --shadow-card: 0 4px 6px 0 rgba(0, 0, 0, 0.02);
+  --shadow-drop: 0 4px 3px rgba(0, 0, 0, 0.02);
+  --shadow-button: 0 5px 10px 0 rgba(0, 0, 0, 0.45);
+  --shadow-button-inset: inset 0 0 4px 1px rgba(12, 12, 13, 0.5);
+
+  /* -------------------------------------------------------------- layout */
+  --layout-canvas: 1440px;
+  --layout-content: 1398px;
+  --layout-gutter: 20px;
+
+  --bar-track-height: 5px;   /* environment CPU / RAM bars */
+  --meter-height: 14px;      /* routing score meter */
+
+  /* --------------------------------------------------------------- accent
+   * The live accent is the current execution target's colour. Set
+   * data-target="local|edge|cloud" on the app root and everything that
+   * follows the decision — the target card, score fill, reason bullets,
+   * primary button, active environment card — re-tints from these three.
+   */
+  --accent: var(--color-cloud);
+  --accent-border: rgba(51, 72, 184, 0.8);
+  --accent-border-soft: rgba(51, 72, 184, 0.2);
+  --accent-border-strong: rgba(51, 72, 184, 0.89);
+  --accent-wash: rgba(51, 72, 184, 0.13);
+  --accent-image: url('/images/blue-bg.svg');
+}
+
+[data-target='local'] {
+  --accent: var(--color-local);
+  --accent-border: rgba(14, 124, 99, 0.8);
+  --accent-border-soft: rgba(14, 124, 99, 0.2);
+  --accent-border-strong: rgba(14, 124, 99, 0.89);
+  --accent-wash: rgba(14, 124, 99, 0.13);
+  --accent-image: url('/images/green-bg.svg');
+}
+
+[data-target='edge'] {
+  --accent: var(--color-edge);
+  --accent-border: rgba(156, 91, 6, 0.8);
+  --accent-border-soft: rgba(156, 91, 6, 0.2);
+  --accent-border-strong: rgba(156, 91, 6, 0.89);
+  --accent-wash: rgba(156, 91, 6, 0.13);
+  /* No EDGE background art in /public/images yet — falls back to a flat
+     accent fill until the asset is exported as /images/edge-bg.svg. */
+  --accent-image: none;
+}
+
+[data-target='cloud'] {
+  --accent: var(--color-cloud);
+  --accent-border: rgba(51, 72, 184, 0.8);
+  --accent-border-soft: rgba(51, 72, 184, 0.2);
+  --accent-border-strong: rgba(51, 72, 184, 0.89);
+  --accent-wash: rgba(51, 72, 184, 0.13);
+  --accent-image: url('/images/blue-bg.svg');
+}
+
+/**
+ * Live numeric readouts.
+ *
+ * General Sans has proportional digits and no tnum feature, so a value
+ * ticking from 11 to 20 changes width and shifts everything beside it.
+ * Reserve the width instead. `ch` is measured against the "0" advance,
+ * which is the widest digit in this face.
+ */
+.is-live {
+  display: inline-block;
+  min-inline-size: var(--live-width, 3ch);
+  text-align: start;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

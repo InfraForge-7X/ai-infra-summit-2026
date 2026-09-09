@@ -1,0 +1,157 @@
+.band {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: var(--space-21);
+  align-items: stretch;
+}
+
+.card,
+.targetCard {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 271px;
+  padding: var(--space-18) var(--space-27) var(--space-19);
+  border-radius: var(--radius-2xl);
+  background: var(--color-surface);
+  filter: drop-shadow(var(--shadow-drop));
+}
+
+/* ------------------------------------------------------------ target card */
+.targetCard {
+  justify-content: space-between;
+  gap: var(--space-27);
+  background-color: var(--accent);
+  background-image: var(--accent-image);
+  background-size: cover;
+  background-position: center;
+  color: var(--color-white);
+}
+
+.targetLabel {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-card);
+}
+
+.targetBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-15);
+}
+
+.targetName {
+  display: flex;
+  align-items: center;
+  gap: var(--space-15);
+}
+
+.glyph {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 2px solid var(--accent-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+}
+
+.name {
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-display);
+}
+
+.caption {
+  color: var(--color-on-accent);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-card);
+}
+
+.dot {
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: 50%;
+  background: var(--color-accent-green);
+}
+
+/* -------------------------------------------------- score and reason cards */
+.cardTitle {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-card);
+  color: var(--color-charcoal);
+}
+
+.score {
+  margin-block: var(--space-27) auto;
+  color: var(--color-charcoal);
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-display);
+}
+
+.scoreUnit {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-regular);
+}
+
+.meterFoot {
+  display: flex;
+  justify-content: space-between;
+  margin-block-start: var(--space-10);
+  color: var(--color-faint);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.reasons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-block-start: var(--space-10);
+}
+
+.reason {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  color: var(--color-charcoal);
+  font-size: var(--fs-md);
+  line-height: var(--lh-card);
+}
+
+.bullet {
+  flex: 0 0 auto;
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.reasonsAction {
+  margin-block-start: auto;
+  padding-block-start: var(--space-15);
+}
+
+@media (max-width: 600px) {
+  .card,
+  .targetCard {
+    min-block-size: 0;
+    padding: var(--space-18) var(--space-20) var(--space-19);
+  }
+
+  .name {
+    font-size: var(--fs-3xl);
+  }
+}

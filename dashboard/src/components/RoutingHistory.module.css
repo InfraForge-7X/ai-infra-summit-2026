@@ -1,0 +1,91 @@
+.card {
+  /* 552px is the designed width. It holds while there is room, then the rail
+     wraps under the execution card rather than squeezing it. */
+  flex: 1 1 552px;
+  max-inline-size: 552px;
+  min-inline-size: 0;
+  min-block-size: 271px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-28);
+}
+
+.title {
+  color: var(--color-charcoal);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+}
+
+.note {
+  color: var(--accent);
+  font-size: var(--fs-sm);
+}
+
+.empty {
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
+}
+
+.rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  padding-inline-start: var(--space-20);
+  max-block-size: 251px;
+  overflow-y: auto;
+}
+
+.rail::before {
+  content: '';
+  position: absolute;
+  inset-block: var(--space-6);
+  inset-inline-start: 4px;
+  inline-size: 1px;
+  background: var(--color-border);
+}
+
+.event {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  color: var(--color-charcoal);
+  font-size: var(--fs-sm);
+}
+
+.event::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: calc(var(--space-20) * -1 + 0.5px);
+  inset-block-start: var(--space-5);
+  inline-size: 9px;
+  block-size: 9px;
+  border: 1.5px solid var(--event-color);
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+/* A reroute is the moment the product exists to show. Filled marker. */
+.marked::before {
+  background: var(--event-color);
+}
+
+.time,
+.detail {
+  color: var(--color-charcoal);
+}
+
+.target {
+  color: var(--event-color);
+  font-weight: var(--fw-medium);
+}
+
+@media (max-width: 1180px) {
+  .card {
+    max-inline-size: none;
+  }
+}

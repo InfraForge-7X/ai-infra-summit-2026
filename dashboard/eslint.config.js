@@ -17,5 +17,11 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+    rules: {
+      // Underscore-prefixed arguments are intentionally unused. The API client
+      // seam declares the parameters the real endpoints will take before those
+      // endpoints exist, so the signatures do not change when they land.
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^[A-Z_]' }],
+    },
   },
 ])

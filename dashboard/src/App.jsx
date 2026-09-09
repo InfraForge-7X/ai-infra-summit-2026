@@ -1,122 +1,107 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react'
 
-function App() {
-  const [count, setCount] = useState(0)
+import * as api from './api/client.js'
+import DecisionBand from './components/DecisionBand.jsx'
+import EnvironmentsPanel from './components/EnvironmentsPanel.jsx'
+import ExecutionPanel from './components/ExecutionPanel.jsx'
+import GuideStrip from './components/GuideStrip.jsx'
+import RoutingHistory from './components/RoutingHistory.jsx'
+import TopBar from './components/TopBar.jsx'
+import WorkloadBar from './components/WorkloadBar.jsx'
+import { workload } from './mocks/fixtures.js'
+import { Button, SectionHeader } from './components/ui/ui.jsx'
+import styles from './App.module.css'
+
+/**
+ * AFRI-EDGE routing control.
+ *
+ * One screen. Navigation would hide the reroute, and the reroute is the
+ * product. Drawers are state, not routes — there is no router in this app.
+ *
+ * The execution target on `data-target` comes from the RoutingDecision and
+ * nothing else. This component never scores, ranks or chooses; it renders
+ * what the Routing API decided. (DoD item #8.)
+ */
+export default function App() {
+  const [decision, setDecision] = useState(/** @type {any} */ (null))
+  const [states, setStates] = useState(/** @type {any} */ (null))
+  const [execution, setExecution] = useState(/** @type {any} */ (null))
+  const [history, setHistory] = useState(/** @type {any[]} */ ([]))
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      const [nextDecision, nextStates, nextExecution, nextHistory] = await Promise.all([
+        api.route(workload),
+        api.getInfrastructureState(),
+        api.getExecution(workload.task_id),
+        api.getHistory(),
+      ])
+      if (cancelled) return
+      setDecision(nextDecision)
+      setStates(nextStates)
+      setExecution(nextExecution)
+      setHistory(nextHistory)
+    }
+
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (!decision || !states || !execution) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.inner}>
+          <TopBar />
+          <p className={styles.loading}>Choosing a target…</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+    <div className={styles.page} data-target={decision.target}>
+      <div className={styles.inner}>
+        <TopBar />
+
+        {api.USING_MOCK_DATA ? (
+          <p className={styles.mockFlag}>
+            <strong>Demonstration data</strong> — not measured results. No
+            improvement is claimed before measurement.
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+        ) : null}
 
-      <div className="ticks"></div>
+        <GuideStrip
+          heading="Running on EDGE"
+          body="Use the button on the right to step through the demo, or open demo controls for every state."
+          actionLabel="Start workload"
+        />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <section className={styles.stack}>
+          <div className={styles.stackHead}>
+            <SectionHeader
+              title="Base line recorded"
+              lede="Compare the two at the bottom. No improvement is claimed until both runs are measured for real."
+              gap={7}
+            />
+            <Button>Change workload</Button>
+          </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+          <WorkloadBar workload={workload} />
+
+          <DecisionBand decision={decision} status={execution.status} />
+
+          <EnvironmentsPanel states={states} chosen={decision.target} />
+
+          <div className={styles.split}>
+            <ExecutionPanel execution={execution} targetState={states[execution.target]} />
+            <RoutingHistory events={history} />
+          </div>
+        </section>
+      </div>
+    </div>
   )
 }
-
-export default App

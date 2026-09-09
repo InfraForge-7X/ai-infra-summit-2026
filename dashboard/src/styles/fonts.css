@@ -1,0 +1,39 @@
+/**
+ * General Sans — self-hosted.
+ * Source files live in /public/fonts. woff2 first, otf as fallback.
+ *
+ * NOTE: General Sans ships no `tnum` OpenType feature and its digits are
+ * proportional (the glyph "1" is ~55% the width of "0"). `font-variant-numeric:
+ * tabular-nums` therefore does nothing. Any readout that updates live must set
+ * a fixed `min-inline-size` instead — see `.is-live` in tokens.css.
+ */
+
+@font-face {
+  font-family: 'General Sans';
+  src:
+    url('/fonts/GeneralSans-Regular.woff2') format('woff2'),
+    url('/fonts/GeneralSans-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'General Sans';
+  src:
+    url('/fonts/GeneralSans-Medium.woff2') format('woff2'),
+    url('/fonts/GeneralSans-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'General Sans';
+  src:
+    url('/fonts/GeneralSans-Semibold.woff2') format('woff2'),
+    url('/fonts/GeneralSans-Semibold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}

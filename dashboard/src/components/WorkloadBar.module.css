@@ -1,0 +1,11 @@
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-15);
+}
+
+/* The privacy and priority values are enum strings — capitalise for display
+   without touching the underlying value. */
+.chips > span:nth-last-child(-n + 2) {
+  text-transform: capitalize;
+}

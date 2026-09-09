@@ -1,0 +1,22 @@
+.card {
+  /* Needs a basis of its own: without one the history rail claims its designed
+     552px and this card is starved to a sliver instead of the two wrapping. */
+  flex: 1 1 480px;
+  min-inline-size: 0;
+  min-block-size: 271px;
+}
+
+.tiles {
+  display: grid;
+  /* Three across when there is room, then two, then one — decided by the
+     space available rather than by a viewport width, because this card also
+     narrows when the history rail sits beside it. */
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+  gap: var(--space-16) var(--space-40);
+}
+
+@media (max-width: 1280px) {
+  .tiles {
+    gap: var(--space-16);
+  }
+}

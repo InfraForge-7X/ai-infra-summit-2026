@@ -1,0 +1,179 @@
+/* Primitives. Values come from tokens only — no raw hex or px here. */
+
+/* ---------------------------------------------------------------- button */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  font-size: var(--fs-md);
+  line-height: var(--lh-ui);
+  white-space: nowrap;
+}
+
+.ghost {
+  block-size: 45px;
+  padding: var(--space-8) var(--space-16);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-black);
+  font-weight: var(--fw-regular);
+}
+
+.ghost:hover {
+  border-color: var(--color-muted);
+}
+
+.small {
+  block-size: 30px;
+  font-size: var(--fs-2xs);
+}
+
+.primary {
+  block-size: 40px;
+  padding: var(--space-5) var(--space-10);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--color-white);
+  font-weight: var(--fw-regular);
+  box-shadow: var(--shadow-button), var(--shadow-button-inset);
+}
+
+/* ------------------------------------------------------------------ chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  block-size: 44px;
+  padding: var(--space-8) var(--space-16);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--fs-md);
+  white-space: nowrap;
+}
+
+.chipLabel {
+  color: var(--color-body);
+  font-weight: var(--fw-regular);
+}
+
+.chipValue {
+  color: var(--color-charcoal);
+  font-weight: var(--fw-semibold);
+}
+
+/* ------------------------------------------------------------------ card */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-24);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+
+/* ------------------------------------------------------------------- tag */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 50px;
+  block-size: 26px;
+  padding: var(--space-5) var(--space-10);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--color-white);
+  font-size: var(--fs-2xs);
+  line-height: var(--lh-ui);
+  box-shadow: var(--shadow-button), var(--shadow-button-inset);
+}
+
+.tagStale {
+  border-color: var(--color-edge);
+  background: transparent;
+  color: var(--color-edge);
+  box-shadow: none;
+}
+
+/* ----------------------------------------------------------------- meter */
+.track {
+  inline-size: 100%;
+  block-size: var(--meter-height);
+  border-radius: var(--radius-xs);
+  background: var(--color-page);
+  overflow: hidden;
+}
+
+.trackThin {
+  block-size: var(--bar-track-height);
+}
+
+.fill {
+  block-size: 100%;
+  border-radius: var(--radius-xs);
+  background: var(--fill-color, var(--accent));
+  transition: inline-size 0.5s ease;
+}
+
+/* ------------------------------------------------------------ metric tile */
+.tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-5);
+  /* 210px is the designed width; below that the tile shrinks rather than
+     pushing the card open. */
+  min-inline-size: min(210px, 100%);
+  block-size: 72px;
+  padding: var(--space-10);
+  border-radius: var(--radius-md);
+  background: var(--color-tile);
+  color: var(--color-strong);
+}
+
+.tileLabel {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+}
+
+.tileValue {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-medium);
+}
+
+.tileValueText {
+  font-size: var(--fs-base);
+}
+
+.tileUnit {
+  margin-inline-start: 1px;
+  color: var(--color-unit);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+}
+
+/* -------------------------------------------------------- section header */
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionTitle {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-medium);
+  color: var(--color-black);
+}
+
+.sectionTitleAccent {
+  color: var(--accent);
+}
+
+.sectionLede {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-regular);
+  color: var(--color-body);
+}
