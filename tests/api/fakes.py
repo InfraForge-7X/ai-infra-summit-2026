@@ -3,8 +3,8 @@
 from typing import Sequence
 
 from src.api.interfaces import DecisionEngine, InfrastructureStateProvider
-from src.shared.enums import ExecutionStatus, ExecutionTarget
-from src.shared.models import ExecutionResult, InfrastructureState, RoutingDecision, WorkloadProfile
+from src.shared.enums import ExecutionTarget
+from src.shared.models import InfrastructureState, RoutingDecision, WorkloadProfile
 
 
 class FakeInfrastructureStateProvider(InfrastructureStateProvider):
@@ -38,19 +38,3 @@ class FakeDecisionEngine(DecisionEngine):
         self.received_workload = workload
         self.received_states = infrastructure_states
         return self.decision
-
-
-def make_execution_result(
-    task_id: str,
-    target: ExecutionTarget,
-    status: ExecutionStatus = ExecutionStatus.COMPLETED,
-) -> ExecutionResult:
-    """Build an execution result when an integration test needs one."""
-    return ExecutionResult(
-        task_id=task_id,
-        target=target,
-        status=status,
-        execution_time_ms=100.0,
-        network_latency_ms=10.0,
-        fps=30.0,
-    )
