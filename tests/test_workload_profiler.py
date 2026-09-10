@@ -1,9 +1,10 @@
 """Unit tests for AFRI-EDGE Workload Profiler (Task #3)."""
 
+from collections import UserDict
 from typing import Any
 
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from src.core.interfaces.workload_profiler import WorkloadProfilerProtocol
 from src.core.workload_profiler import WorkloadProfiler, WorkloadProfilingError
@@ -296,6 +297,26 @@ def test_unexpected_extra_fields_rejected() -> None:
     assert "Validation error" in str(exc_info.value)
 
 
+def test_mapping_input_supported() -> None:
+    """Verify Mapping implementations other than dict are accepted."""
+    profiler = WorkloadProfiler()
+    request_data = UserDict(
+        {
+            "task_id": "task-mapping-01",
+            "workload_type": "real_time_video",
+            "model": "yolov8",
+            "input_size": 1080,
+            "latency_requirement": 50,
+            "compute_requirement": "gpu",
+        }
+    )
+
+    profile = profiler.profile(request_data)
+
+    assert profile.task_id == "task-mapping-01"
+    assert profile.workload_type == WorkloadType.REAL_TIME_VIDEO
+
+
 def test_returns_shared_workload_profile_instance() -> None:
     """Test 13: Returned object is strictly an instance of src.shared.models.WorkloadProfile."""
     profiler = WorkloadProfiler()
@@ -323,6 +344,17 @@ class SamplePydanticRequest(BaseModel):
     compute_requirement: str
 
 
+class SamplePydanticRequestWithExtras(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    task_id: str
+    workload_type: str
+    model: str
+    input_size: int
+    latency_requirement: int
+    compute_requirement: str
+
+
 def test_profile_pydantic_model_input() -> None:
     """Test profiler handles Pydantic model object as input payload."""
     profiler = WorkloadProfiler()
@@ -339,6 +371,25 @@ def test_profile_pydantic_model_input() -> None:
 
     assert profile.task_id == "task-pydantic-01"
     assert profile.workload_type == WorkloadType.REAL_TIME_VIDEO
+
+
+def test_pydantic_model_extra_fields_are_forwarded_for_validation() -> None:
+    """Verify preserved Pydantic extras reach the shared extra='forbid' boundary."""
+    profiler = WorkloadProfiler()
+    req_model = SamplePydanticRequestWithExtras(
+        task_id="task-pydantic-extra-01",
+        workload_type="real_time_video",
+        model="yolov8",
+        input_size=1920,
+        latency_requirement=33,
+        compute_requirement="gpu",
+        unknown_extra_param="should_be_forbidden",
+    )
+
+    with pytest.raises(WorkloadProfilingError) as exc_info:
+        profiler.profile(req_model)
+
+    assert "unknown_extra_param" in str(exc_info.value)
 
 
 def test_profile_none_input_raises_error() -> None:
