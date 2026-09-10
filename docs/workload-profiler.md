@@ -20,8 +20,8 @@ The Workload Profiler acts as the entry validation boundary before workloads ent
 
 ### Input Request Format
 The profiler accepts:
-- Python `dict` mappings containing request payload fields.
-- Pydantic `BaseModel` objects.
+- Python `Mapping` implementations containing request payload fields (including `dict` and other mapping types).
+- Pydantic `BaseModel` objects. Extra fields are forwarded when the input model preserves them (for example with `extra="allow"`).
 - Python objects with attribute dictionaries (`__dict__`).
 
 ### Workload Profile Fields
@@ -45,7 +45,8 @@ The profiler accepts:
 2. **Empty Strings**: `task_id` and `model` must not be empty or whitespace-only strings.
 3. **Non-Positive Integers**: `input_size` and `latency_requirement` must be integers `> 0`. Boolean values (`True`/`False`) are rejected.
 4. **Enum Validation**: String values for enums (`workload_type`, `compute_requirement`, `privacy`, `priority`) are automatically mapped to valid `src.shared.enums` values or rejected.
-5. **Extra Fields**: Unexpected extra fields are rejected as specified by the shared `WorkloadProfile` Pydantic configuration (`extra="forbid"`).
+5. **Extra Fields**: Unexpected extra fields are rejected by the shared `WorkloadProfile` Pydantic configuration (`extra="forbid"`).
+6. **Pydantic Input Preservation**: When a Pydantic input model is configured to preserve extra fields (for example `extra="allow"`), those extras are forwarded to the shared model so the same `extra="forbid"` boundary can reject them.
 
 ### Exception Class
 - **`WorkloadProfilingError`**: Subclass of `ValueError` raised when any validation check fails during profiling.
@@ -83,14 +84,14 @@ profile = profiler.profile(raw_request)
 print(profile.task_id)             # "video-stream-cam-01"
 print(profile.workload_type)       # WorkloadType.REAL_TIME_VIDEO
 print(profile.privacy)             # PrivacyLevel.STANDARD (default applied)
-print(profile.priority)            # Priority.MEDIUM (default applied)
+print(profile.priority)             # Priority.MEDIUM (default applied)
 ```
 
 ---
 
 ## Testing Summary
 
-The test suite in [`tests/test_workload_profiler.py`](file:///C:/Users/User/projects/ai-infra-summit-2026/tests/test_workload_profiler.py) includes **47 unit test cases** covering:
+The test suite in `tests/test_workload_profiler.py` covers:
 - Interface protocol conformance (`WorkloadProfilerProtocol`).
 - Complete valid request profiling.
 - Minimal valid requests applying default values (`privacy=STANDARD`, `priority=MEDIUM`).
@@ -101,22 +102,9 @@ The test suite in [`tests/test_workload_profiler.py`](file:///C:/Users/User/proj
 - Parameterized tests for invalid enum values (`workload_type`, `compute_requirement`, `privacy`, `priority`).
 - Parameterized tests for empty/whitespace `task_id` and `model`.
 - Extra unexpected fields rejection.
-- Pydantic request model payload inputs.
+- Generic mapping inputs.
+- Pydantic request model payload inputs, including preserved extra-field rejection.
 - `None` input handling.
-
----
-
-## Repository Files Created & Modified
-
-### New Files Created
-- [`src/core/interfaces/workload_profiler.py`](file:///C:/Users/User/projects/ai-infra-summit-2026/src/core/interfaces/workload_profiler.py): Protocol definition (`WorkloadProfilerProtocol`).
-- [`src/core/workload_profiler.py`](file:///C:/Users/User/projects/ai-infra-summit-2026/src/core/workload_profiler.py): Profiler implementation (`WorkloadProfiler`, `WorkloadProfilingError`).
-- [`tests/test_workload_profiler.py`](file:///C:/Users/User/projects/ai-infra-summit-2026/tests/test_workload_profiler.py): Unit test suite (47 tests).
-- [`docs/workload-profiler.md`](file:///C:/Users/User/projects/ai-infra-summit-2026/docs/workload-profiler.md): Technical documentation.
-
-### Modified Files
-- [`src/core/__init__.py`](file:///C:/Users/User/projects/ai-infra-summit-2026/src/core/__init__.py): Package re-exports for `WorkloadProfiler` and `WorkloadProfilingError`.
-- [`src/core/interfaces/__init__.py`](file:///C:/Users/User/projects/ai-infra-summit-2026/src/core/interfaces/__init__.py): Package re-exports for `WorkloadProfilerProtocol` and `DecisionEngineProtocol`.
 
 ---
 
