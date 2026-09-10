@@ -5,6 +5,7 @@ Focuses on REAL_TIME_VIDEO as the canonical MVP workload while maintaining deter
 and extensibility for future workload types (SPEECH, BATCH_INFERENCE).
 """
 
+from collections.abc import Mapping
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
@@ -31,7 +32,10 @@ class WorkloadProfiler:
         """Profile an AI request and construct a validated WorkloadProfile.
 
         Args:
-            request: Request data provided as a dict, Pydantic BaseModel, or mapping.
+            request: Request data provided as a mapping, Pydantic BaseModel, or object
+                exposing ``__dict__``. Pydantic models must preserve extra fields
+                (for example with ``extra='allow'``) if those fields need to be
+                validated by the profiler.
 
         Returns:
             WorkloadProfile: Validated shared workload profile model.
@@ -44,7 +48,10 @@ class WorkloadProfiler:
 
         if isinstance(request, BaseModel):
             payload = request.model_dump()
-        elif isinstance(request, dict):
+            extra = getattr(request, "__pydantic_extra__", None)
+            if extra:
+                payload.update(extra)
+        elif isinstance(request, Mapping):
             payload = dict(request)
         elif hasattr(request, "__dict__"):
             payload = dict(request.__dict__)
@@ -68,7 +75,7 @@ class WorkloadProfiler:
         # Validate workload_type early
         if "workload_type" not in payload:
             raise WorkloadProfilingError("Missing required field: 'workload_type'")
-        
+
         workload_type = payload.get("workload_type")
         if isinstance(workload_type, str):
             try:
