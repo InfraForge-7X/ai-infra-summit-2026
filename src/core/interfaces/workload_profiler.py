@@ -16,7 +16,7 @@ class WorkloadProfilerProtocol(Protocol):
         """Profile an AI request and return a validated WorkloadProfile instance.
 
         Args:
-            request: Raw request dictionary, Pydantic model, or mapping.
+            request: Raw mapping, Pydantic model, or object exposing ``__dict__``.
 
         Returns:
             WorkloadProfile: Validated shared workload profile instance.
