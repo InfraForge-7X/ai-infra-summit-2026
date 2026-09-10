@@ -1,19 +1,18 @@
-from fastapi import APIRouter, HTTPException, status
+"""HTTP route for AFRI-EDGE workload routing."""
 
-from src.shared.models import WorkloadProfile
+from fastapi import APIRouter, Depends
+
+from src.api.dependencies import get_routing_service
+from src.api.services.routing import RoutingService
+from src.shared.models import RoutingDecision, WorkloadProfile
 
 router = APIRouter(prefix="/route", tags=["routing"])
 
 
-@router.post("", status_code=status.HTTP_501_NOT_IMPLEMENTED)
-async def route_workload(workload: WorkloadProfile) -> None:
-    """Validate a workload and prepare it for the AFRI-EDGE routing pipeline.
-
-    Infrastructure state retrieval and Decision Engine execution will be
-    injected once the corresponding services are validated.
-    """
-    _ = workload
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Routing pipeline is not implemented yet",
-    )
+@router.post("", response_model=RoutingDecision)
+async def route_workload(
+    workload: WorkloadProfile,
+    routing_service: RoutingService = Depends(get_routing_service),
+) -> RoutingDecision:
+    """Route a validated workload through the AFRI-EDGE service layer."""
+    return routing_service.route(workload)
