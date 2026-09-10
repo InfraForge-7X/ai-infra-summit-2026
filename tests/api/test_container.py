@@ -4,7 +4,7 @@ from src.api.container import create_routing_service
 from src.api.services.routing import RoutingService
 
 from tests.api.fakes import FakeDecisionEngine, FakeInfrastructureStateProvider
-from tests.api.test_routing_service import make_decision, make_states
+from tests.api.test_routing_service import make_decision, make_states, make_workload
 
 
 def test_create_routing_service_injects_dependencies() -> None:
@@ -17,7 +17,7 @@ def test_create_routing_service_injects_dependencies() -> None:
     )
 
     assert isinstance(service, RoutingService)
-    result = service.route(__import__("tests.api.test_routing_service", fromlist=["make_workload"]).make_workload())
+    result = service.route(make_workload())
 
     assert result is engine.decision
     assert engine.received_workload is not None
