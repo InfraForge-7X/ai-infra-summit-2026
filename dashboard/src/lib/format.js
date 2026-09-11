@@ -31,6 +31,33 @@ export const asOneDecimal = (value) => guard(value, (n) => (Math.round(n * 10) /
 export const asScore = (value) => guard(value, (n) => n.toFixed(2))
 
 /**
+ * Network latency. The contract field is `latency_ms`, so the unit is
+ * milliseconds. The Figma frame reads "5m/s", which is metres per second — a
+ * typo, and a damaging one on a dashboard whose whole claim is measured
+ * infrastructure conditions.
+ *
+ * @param {number | null | undefined} value
+ */
+export const asLatency = (value) => guard(value, (n) => `${Math.round(n)} ms`)
+
+/**
+ * Durations. Milliseconds are right for small numbers and unreadable for large
+ * ones — nobody parses "82000ms" at a glance. Past a second, say seconds; past
+ * a minute, say minutes.
+ *
+ * @param {number | null | undefined} value  Milliseconds
+ */
+export function asDuration(value) {
+  return guard(value, (n) => {
+    if (n < 1000) return `${Math.round(n)} ms`
+    if (n < 60000) return `${(n / 1000).toFixed(1)} s`
+    const minutes = Math.floor(n / 60000)
+    const seconds = Math.round((n % 60000) / 1000)
+    return `${minutes}m ${String(seconds).padStart(2, '0')}s`
+  })
+}
+
+/**
  * Human freshness for an InfrastructureState timestamp.
  * @param {string} iso
  * @param {number} [now]

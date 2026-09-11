@@ -26,14 +26,16 @@ export function Icon({ icon, size = 24, strokeWidth = 1.6, color = 'currentColor
  * @param {object} props
  * @param {'primary' | 'ghost'} [props.variant]
  * @param {boolean} [props.small]
+ * @param {'button' | 'submit'} [props.type]  Defaults to button, so a Button
+ *   inside a form does not submit it by accident.
  * @param {React.ReactNode} props.children
  * @param {() => void} [props.onClick]
  */
-export function Button({ variant = 'ghost', small = false, children, onClick }) {
+export function Button({ variant = 'ghost', small = false, type = 'button', children, onClick }) {
   const tone = variant === 'primary' ? styles.primary : styles.ghost
   return (
     <button
-      type="button"
+      type={type}
       onClick={onClick}
       className={[styles.button, tone, small ? styles.small : ''].join(' ')}
     >
@@ -105,6 +107,11 @@ export function Meter({ value, thin = false, color, label }) {
 
 /**
  * A metric readout. `value` is already formatted — pass EM_DASH for missing.
+ *
+ * Units always arrive through `unit`, never baked into `value`, so every tile
+ * renders them the same way. Mixing the two gave "73 ms" at full size next to
+ * "27" with a small grey "%" hanging off it.
+ *
  * @param {object} props
  * @param {string} props.label
  * @param {string} props.value
@@ -117,11 +124,37 @@ export function MetricTile({ label, value, unit, text = false, reserve }) {
   return (
     <div className={styles.tile}>
       <span className={styles.tileLabel}>{label}</span>
-      <span className={`${styles.tileValue} ${text ? styles.tileValueText : ''}`}>
-        <span className={reserve ? 'is-live' : ''} style={reserve ? { '--live-width': `${reserve}ch` } : undefined}>
-          {value}
-        </span>
+      {/* The reserved width goes on the group, so a ticking number cannot
+          shove its own unit sideways. */}
+      <span
+        className={`${styles.tileValue} ${text ? styles.tileValueText : ''} ${reserve ? 'is-live' : ''}`}
+        style={reserve ? { '--live-width': `${reserve}ch` } : undefined}
+      >
+        <span>{value}</span>
         {unit && !missing ? <span className={styles.tileUnit}>{unit}</span> : null}
+      </span>
+    </div>
+  )
+}
+
+/**
+ * Execution status. A word, not a quantity — so it gets text weight and a
+ * lifecycle dot rather than the 24px treatment a measurement earns.
+ *
+ * @param {object} props
+ * @param {string} props.label
+ * @param {string} props.value
+ * @param {'ok' | 'fail' | 'idle'} props.tone
+ */
+export function StatusTile({ label, value, tone }) {
+  const toneClass =
+    tone === 'fail' ? styles.tileStatusDotFail : tone === 'idle' ? styles.tileStatusDotIdle : ''
+  return (
+    <div className={styles.tile}>
+      <span className={styles.tileLabel}>{label}</span>
+      <span className={styles.tileStatus}>
+        <span className={`${styles.tileStatusDot} ${toneClass}`} aria-hidden="true" />
+        {value}
       </span>
     </div>
   )
@@ -131,7 +164,9 @@ export function MetricTile({ label, value, unit, text = false, reserve }) {
  * @param {object} props
  * @param {string} props.title
  * @param {string} [props.lede]
- * @param {boolean} [props.accent]  Tint the title with the live accent
+ * @param {boolean} [props.accent]  Reserved for headings that name the current
+ *   target. Section titles are neutral — accent carries the decision, not
+ *   the hierarchy.
  * @param {number} [props.gap]
  */
 export function SectionHeader({ title, lede, accent = false, gap }) {

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import * as api from './api/client.js'
 import BaselinePanel from './components/BaselinePanel.jsx'
 import DecisionBand from './components/DecisionBand.jsx'
+import DecisionDetailDrawer from './components/DecisionDetailDrawer.jsx'
 import DemoControlsDrawer from './components/DemoControlsDrawer.jsx'
 import EnvironmentsPanel from './components/EnvironmentsPanel.jsx'
 import ExecutionPanel from './components/ExecutionPanel.jsx'
@@ -11,8 +12,9 @@ import Notice from './components/Notice.jsx'
 import RoutingHistory from './components/RoutingHistory.jsx'
 import TopBar from './components/TopBar.jsx'
 import WorkloadBar from './components/WorkloadBar.jsx'
+import WorkloadDrawer from './components/WorkloadDrawer.jsx'
 import { Button, SectionHeader } from './components/ui/ui.jsx'
-import { workload } from './mocks/fixtures.js'
+import { workload as defaultWorkload } from './mocks/fixtures.js'
 import { BASELINE } from './mocks/scenarios.js'
 import styles from './App.module.css'
 
@@ -33,6 +35,9 @@ export default function App() {
     /** @type {import('./mocks/scenarios.js').Baseline | null} */ (null),
   )
   const [controlsOpen, setControlsOpen] = useState(false)
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [workloadOpen, setWorkloadOpen] = useState(false)
+  const [workload, setWorkload] = useState(defaultWorkload)
   // Stamped when we last displayed a real decision, so a 503 can say how old
   // the numbers on screen are. Recorded where the change happens rather than
   // in an effect, which would re-render for nothing.
@@ -52,6 +57,16 @@ export default function App() {
       setLastGoodAt(new Date().toLocaleTimeString('en-GB'))
     }
     setScenarioKey(key)
+  }
+
+  /**
+   * A new workload profile is submitted, not routed. The backend decides where
+   * it runs; this picks the canned response that decision would produce.
+   * @param {import('./mocks/contracts.js').WorkloadProfile} next
+   */
+  const submitWorkload = (next) => {
+    setWorkload(next)
+    selectScenario(next.workload_type === 'speech' ? 'speech' : 'running')
   }
 
   const reroutes = useMemo(
@@ -94,7 +109,7 @@ export default function App() {
               }
               gap={7}
             />
-            <Button>Change workload</Button>
+            <Button onClick={() => setWorkloadOpen(true)}>Change workload</Button>
           </div>
 
           <WorkloadBar workload={workload} />
@@ -134,7 +149,11 @@ export default function App() {
 
           {showsDashboard ? (
             <>
-              <DecisionBand decision={decision} status={execution.status} />
+              <DecisionBand
+                decision={decision}
+                status={execution.status}
+                onSeeDecision={() => setDetailOpen(true)}
+              />
               <EnvironmentsPanel states={states} chosen={decision.target} />
 
               <div className={styles.split}>
@@ -152,8 +171,25 @@ export default function App() {
         open={controlsOpen}
         onClose={() => setControlsOpen(false)}
         onSelect={selectScenario}
+        onChangeWorkload={() => setWorkloadOpen(true)}
         onRunBaseline={() => setBaseline(BASELINE)}
         current={scenarioKey}
+      />
+
+      <DecisionDetailDrawer
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        decision={decision}
+        workload={workload}
+        targetState={states[decision?.target ?? 'cloud']}
+        execution={execution}
+      />
+
+      <WorkloadDrawer
+        open={workloadOpen}
+        onClose={() => setWorkloadOpen(false)}
+        workload={workload}
+        onSubmit={submitWorkload}
       />
     </div>
   )

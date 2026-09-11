@@ -90,3 +90,122 @@ describe('baseline comparison', () => {
     expect(screen.getByText(/Demonstration values only/i)).toBeInTheDocument()
   })
 })
+
+describe('decision detail drawer', () => {
+  it('shows the raw payloads behind the decision', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /see decision/i }))
+    const drawer = await screen.findByRole('dialog', { name: /decision detail/i })
+
+    expect(within(drawer).getByText('RoutingDecision')).toBeInTheDocument()
+    expect(within(drawer).getByText('WorkloadProfile sent')).toBeInTheDocument()
+  })
+
+  // The contract carries no candidate ranking. Saying so is more honest than
+  // quietly omitting the comparison, which would read as the engine not
+  // having weighed alternatives.
+  it('states plainly that no candidate ranking exists', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /see decision/i }))
+    const drawer = await screen.findByRole('dialog', { name: /decision detail/i })
+
+    expect(within(drawer).getByText(/no candidate ranking/i)).toBeInTheDocument()
+  })
+})
+
+describe('workload form', () => {
+  it('sends the profile and reflects it back on the page', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /change workload/i }))
+    const drawer = await screen.findByRole('dialog', { name: /^workload$/i })
+
+    await user.clear(within(drawer).getByLabelText(/task id/i))
+    await user.type(within(drawer).getByLabelText(/task id/i), 'task-042')
+    await user.click(within(drawer).getByRole('button', { name: /route this workload/i }))
+
+    // The full task_id, matching what the decision drawer shows in the raw
+    // payload — not a tidied fragment of it.
+    expect(screen.getByText('task-042')).toBeInTheDocument()
+  })
+
+  // §29.2: the routing core is workload-agnostic. Speech has no frames, so
+  // fps is null on the contract and must not render as 0.
+  it('renders an em dash for fps when a speech workload is selected', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /change workload/i }))
+    const drawer = await screen.findByRole('dialog', { name: /^workload$/i })
+
+    await user.click(within(drawer).getByRole('combobox', { name: /workload type/i }))
+    await user.click(within(drawer).getByRole('option', { name: 'speech' }))
+    await user.click(within(drawer).getByRole('button', { name: /route this workload/i }))
+
+    expect(screen.getByText('—')).toBeInTheDocument()
+  })
+
+  it('does not offer the legacy workload type', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /change workload/i }))
+    const drawer = await screen.findByRole('dialog', { name: /^workload$/i })
+    await user.click(within(drawer).getByRole('combobox', { name: /workload type/i }))
+
+    expect(within(drawer).getByRole('option', { name: 'real_time_video' })).toBeInTheDocument()
+    expect(within(drawer).queryByRole('option', { name: 'video_inference' })).not.toBeInTheDocument()
+  })
+
+  // Replacing a native <select> means re-implementing what it gave for free.
+  it('is operable from the keyboard alone', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /change workload/i }))
+    const drawer = await screen.findByRole('dialog', { name: /^workload$/i })
+    const combobox = within(drawer).getByRole('combobox', { name: /privacy/i })
+
+    combobox.focus()
+    await user.keyboard('{ArrowDown}')
+    expect(combobox).toHaveAttribute('aria-expanded', 'true')
+
+    await user.keyboard('{ArrowDown}{Enter}')
+    expect(combobox).toHaveTextContent('sensitive')
+    expect(combobox).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  // Inside a drawer, Escape on an open menu must close the menu only. Closing
+  // the whole drawer would throw away everything typed into the form.
+  it('closes only the menu on Escape, not the drawer behind it', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /change workload/i }))
+    const drawer = await screen.findByRole('dialog', { name: /^workload$/i })
+    const combobox = within(drawer).getByRole('combobox', { name: /priority/i })
+
+    await user.click(combobox)
+    expect(combobox).toHaveAttribute('aria-expanded', 'true')
+
+    await user.keyboard('{Escape}')
+    expect(combobox).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('dialog', { name: /^workload$/i })).toBeInTheDocument()
+  })
+})
+
+describe('optional provider adapters', () => {
+  // §29.5 — sponsor integrations are capabilities, not dependencies. The tag
+  // says where execution happens; it must not appear on targets without an
+  // adapter, and it changes no routing behaviour.
+  it('labels only the target that has an adapter', () => {
+    render(<App />)
+    const adapters = screen.getAllByText(/via SiMa\.ai/i)
+    expect(adapters).toHaveLength(1)
+  })
+})

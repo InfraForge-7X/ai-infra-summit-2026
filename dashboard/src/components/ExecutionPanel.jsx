@@ -1,6 +1,23 @@
-import { asInt, STATUS_LABEL } from '../lib/format.js'
-import { Card, MetricTile, SectionHeader } from './ui/ui.jsx'
+import { asDuration, asInt, STATUS_LABEL } from '../lib/format.js'
+import { Card, MetricTile, SectionHeader, StatusTile } from './ui/ui.jsx'
 import styles from './ExecutionPanel.module.css'
+
+/**
+ * Lifecycle tone for the status dot — the same three states the target card
+ * uses, so one status reads the same way in both places.
+ * @type {Record<string, 'ok' | 'fail' | 'idle'>}
+ */
+const STATUS_TONE = {
+  running: 'ok',
+  dispatched: 'ok',
+  completed: 'ok',
+  result_returned: 'ok',
+  failed: 'fail',
+  timeout: 'fail',
+  cancelled: 'idle',
+  created: 'idle',
+  routing: 'idle',
+}
 
 /**
  * Execution metrics on the current target.
@@ -26,15 +43,14 @@ export default function ExecutionPanel({ execution, targetState }) {
           unit="ms"
           reserve={4}
         />
-        <MetricTile
-          label="Execution time"
-          value={asInt(execution.execution_time_ms)}
-          unit="ms"
-          reserve={6}
-        />
+        <MetricTile label="Execution time" value={asDuration(execution.execution_time_ms)} reserve={6} />
         <MetricTile label="CPU on target" value={asInt(targetState.cpu_usage)} unit="%" reserve={3} />
         <MetricTile label="RAM on target" value={asInt(targetState.ram_usage)} unit="%" reserve={3} />
-        <MetricTile label="Status" value={STATUS_LABEL[execution.status]} text />
+        <StatusTile
+          label="Status"
+          value={STATUS_LABEL[execution.status]}
+          tone={STATUS_TONE[execution.status] ?? 'idle'}
+        />
       </div>
     </Card>
   )

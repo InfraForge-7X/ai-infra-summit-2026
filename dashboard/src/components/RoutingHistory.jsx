@@ -26,7 +26,9 @@ export default function RoutingHistory({ events }) {
     <Card className={styles.card}>
       <header className={styles.head}>
         <h2 className={styles.title}>Routing history</h2>
-        <p className={styles.note}>Newest first · no contract yet</p>
+        <p className={styles.meta}>Newest first</p>
+        {/* A caveat, not a link. It was accent-coloured, which read as one. */}
+        <p className={styles.provisional}>no contract yet</p>
       </header>
 
       {events.length === 0 ? (
@@ -44,9 +46,11 @@ export default function RoutingHistory({ events }) {
               ].join(' ')}
               style={{ '--event-color': eventColor(event) }}
             >
-              <p className={styles.time}>{event.time}</p>
               <p className={styles.headline}>{headline(event)}</p>
-              <p className={styles.detail}>{detail(event)}</p>
+              <p className={styles.detail}>
+                <span className={styles.time}>{event.time}</span>
+                {detail(event)}
+              </p>
             </li>
           ))}
         </ol>
@@ -83,5 +87,10 @@ function headline(event) {
 /** @param {import('../mocks/fixtures.js').RoutingEvent} event */
 function detail(event) {
   if (event.kind === 'failure') return event.reason
-  return `Score ${asScore(event.score)} · ${event.reason}`
+  return (
+    <>
+      <span className={styles.score}>{asScore(event.score)}</span>
+      {event.reason}
+    </>
+  )
 }

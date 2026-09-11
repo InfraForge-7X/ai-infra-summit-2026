@@ -11,12 +11,11 @@
   /* Three across when there is room, then two, then one — decided by the
      space available rather than by a viewport width, because this card also
      narrows when the history rail sits beside it. */
-  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
-  gap: var(--space-16) var(--space-40);
-}
-
-@media (max-width: 1280px) {
-  .tiles {
-    gap: var(--space-16);
-  }
+  /* Never more than three across: the floor is the larger of 160px and a
+     third of the row, so six tiles land as 3 x 2, then 2 x 3, then one column. */
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(max(160px, calc(33.333% - var(--space-10))), 1fr)
+  );
+  gap: var(--space-15);
 }

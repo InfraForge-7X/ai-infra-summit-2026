@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { asInt, asPercent, EM_DASH, isStale, timeAgo } from '../lib/format.js'
+import { asDuration, asInt, asLatency, asPercent, EM_DASH, isStale, timeAgo } from '../lib/format.js'
 
 describe('numeric formatting', () => {
   // The contract says fps is `float | None`. A speech workload returns null,
@@ -44,5 +44,27 @@ describe('freshness', () => {
 
   it('treats an unparseable timestamp as stale rather than fresh', () => {
     expect(isStale('not-a-date', now)).toBe(true)
+  })
+})
+
+describe('units and durations', () => {
+  // The Figma frame reads "5m/s" — metres per second. The contract field is
+  // latency_ms. Wrong units on the headline network metric undercut the one
+  // claim this dashboard makes.
+  it('labels latency in milliseconds', () => {
+    expect(asLatency(5.2)).toBe('5 ms')
+    expect(asLatency(null)).toBe(EM_DASH)
+  })
+
+  // Nobody reads "82000ms" at a glance.
+  it('scales a duration to a unit a person can read', () => {
+    expect(asDuration(640)).toBe('640 ms')
+    expect(asDuration(4200)).toBe('4.2 s')
+    expect(asDuration(82000)).toBe('1m 22s')
+  })
+
+  it('still distinguishes a missing duration from a zero one', () => {
+    expect(asDuration(null)).toBe(EM_DASH)
+    expect(asDuration(0)).toBe('0 ms')
   })
 })

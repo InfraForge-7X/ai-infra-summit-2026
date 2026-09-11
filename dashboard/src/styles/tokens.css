@@ -55,7 +55,9 @@
   --color-strong: #1d1e20;    /* metric tile text */
   --color-heading: #100070;   /* guide + baseline headings */
   --color-on-accent: #f1f1f1; /* caption on the target card */
-  --color-hint: rgba(29, 30, 32, 0.58); /* drawer group and control captions */
+  /* 0.58 measured 4.17:1 on white, under the 4.5 minimum, and it is used at
+     12px for every drawer caption and form label. 0.66 measures 5.40:1. */
+  --color-hint: rgba(29, 30, 32, 0.66); /* drawer group and control captions */
 
   /* Execution targets. These three are the product's core concept. */
   --color-local: #0e7c63;
@@ -144,9 +146,7 @@
   --accent-border-soft: rgba(156, 91, 6, 0.2);
   --accent-border-strong: rgba(156, 91, 6, 0.89);
   --accent-wash: rgba(156, 91, 6, 0.13);
-  /* No EDGE background art in /public/images yet — falls back to a flat
-     accent fill until the asset is exported as /images/edge-bg.svg. */
-  --accent-image: none;
+  --accent-image: url('/images/edge-bg.svg');
 }
 
 [data-target='cloud'] {

@@ -124,28 +124,28 @@ export const history = [
   },
   {
     id: 'ev-3',
-    time: '03:20:52',
+    time: '03:20:31',
     kind: 'decision',
     target: 'local',
-    score: 0.65,
-    reason: 'Latency within requirement',
+    score: 0.71,
+    reason: 'Restricted privacy requires on-device execution',
   },
   {
     id: 'ev-2',
-    time: '03:20:52',
+    time: '03:20:07',
     kind: 'reroute',
     from: 'cloud',
     target: 'local',
-    score: 0.65,
-    reason: 'Latency within requirement',
+    score: 0.68,
+    reason: 'Cloud latency exceeded the requirement',
   },
   {
     id: 'ev-1',
-    time: '03:20:52',
+    time: '03:19:44',
     kind: 'decision',
     target: 'cloud',
-    score: 0.65,
-    reason: 'Latency within requirement',
+    score: 0.59,
+    reason: 'GPU available',
   },
 ]
 
@@ -155,3 +155,15 @@ export const history = [
  * only — the frontend never applies it.
  */
 export const SWITCHING_MARGIN = 0.08
+
+/**
+ * Optional execution-provider adapters (§29.3, §29.5).
+ *
+ * SiMa.ai is an optional Edge provider: the architecture is functional without
+ * it and the Decision Engine stays technology-agnostic, so this is a label on
+ * a card and never a branch in routing. A target absent from this map simply
+ * shows no tag.
+ *
+ * @type {Partial<Record<ExecutionTarget, string>>}
+ */
+export const ADAPTERS = { edge: 'SiMa.ai' }

@@ -5,6 +5,19 @@ import { SWITCHING_MARGIN } from '../mocks/fixtures.js'
 import { Button, Icon, Meter } from './ui/ui.jsx'
 import styles from './DecisionBand.module.css'
 
+/**
+ * Lifecycle tones for the status dot. Running is the healthy steady state;
+ * the failure states are the only ones that change colour.
+ * @type {Partial<Record<import('../mocks/contracts.js').ExecutionStatus, string>>}
+ */
+const DOT_TONE = {
+  failed: 'fail',
+  timeout: 'fail',
+  cancelled: 'idle',
+  created: 'idle',
+  routing: 'idle',
+}
+
 /** @type {Record<import('../mocks/contracts.js').ExecutionTarget, any>} */
 const TARGET_ICON = {
   local: ComputerIcon,
@@ -53,7 +66,12 @@ function TargetCard({ target, status }) {
       </div>
 
       <p className={styles.status}>
-        <span className={styles.dot} aria-hidden="true" />
+        {/* The dot encodes lifecycle, not target — so its colour is fixed and
+            it carries a ring to stay legible on any of the three cards. */}
+        <span
+          className={`${styles.dot} ${DOT_TONE[status] ? styles[DOT_TONE[status]] : ''}`}
+          aria-hidden="true"
+        />
         {STATUS_LABEL[status]}
       </p>
     </article>

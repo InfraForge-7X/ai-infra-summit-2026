@@ -1,11 +1,13 @@
 import {
   asInt,
+  asLatency,
   asOneDecimal,
   asPercent,
   isStale,
   TARGET_LABEL,
   timeAgo,
 } from '../lib/format.js'
+import { ADAPTERS } from '../mocks/fixtures.js'
 import { Meter, SectionHeader, Tag } from './ui/ui.jsx'
 import styles from './EnvironmentsPanel.module.css'
 
@@ -43,6 +45,7 @@ export default function EnvironmentsPanel({ states, chosen }) {
             key={target}
             state={states[target]}
             chosen={target === chosen}
+            adapter={ADAPTERS[target]}
           />
         ))}
       </div>
@@ -54,8 +57,9 @@ export default function EnvironmentsPanel({ states, chosen }) {
  * @param {object} props
  * @param {import('../mocks/contracts.js').InfrastructureState} props.state
  * @param {boolean} props.chosen
+ * @param {string} [props.adapter]  Optional execution provider, e.g. SiMa.ai
  */
-function EnvironmentCard({ state, chosen }) {
+function EnvironmentCard({ state, chosen, adapter }) {
   const stale = isStale(state.timestamp)
   const color = TARGET_COLOR[state.target]
 
@@ -63,7 +67,13 @@ function EnvironmentCard({ state, chosen }) {
     <article className={`${styles.card} ${chosen ? styles.chosen : ''}`}>
       <div className={styles.cardHead}>
         <div className={styles.identity}>
-          <p className={styles.name}>{TARGET_LABEL[state.target]}</p>
+          <p className={styles.name}>
+            {TARGET_LABEL[state.target]}
+            {/* Sponsor adapters are capabilities, not dependencies (§29.5).
+                The label says where execution would happen; it changes no
+                routing behaviour. */}
+            {adapter ? <span className={styles.adapter}>via {adapter}</span> : null}
+          </p>
           <p className={styles.fresh}>{timeAgo(state.timestamp)}</p>
         </div>
         {/* Only live and stale exist. Ineligibility is the engine's judgement
@@ -76,7 +86,7 @@ function EnvironmentCard({ state, chosen }) {
         <BarRow label="CPU" value={asPercent(state.cpu_usage)} ratio={state.cpu_usage / 100} color={color} />
         <BarRow label="RAM" value={asPercent(state.ram_usage)} ratio={state.ram_usage / 100} color={color} />
         <Row label="GPU" value={state.gpu_available ? 'available' : 'none'} />
-        <Row label="Latency" value={`${asInt(state.latency_ms)}m/s`} />
+        <Row label="Latency" value={asLatency(state.latency_ms)} />
         <Row label="Bandwidth" value={`${asInt(state.bandwidth_mbps)} Mbps`} />
         <Row label="Packet loss" value={`${asOneDecimal(state.packet_loss)}%`} />
         <Row label="Queue" value={asInt(state.queue)} />

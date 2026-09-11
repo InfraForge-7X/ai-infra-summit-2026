@@ -31,23 +31,27 @@
   gap: var(--space-24);
 }
 
-.stackHead h2 {
-  color: var(--color-heading);
-}
-
 .split {
   display: flex;
   align-items: flex-start;
   gap: var(--space-30);
 }
 
+/* §29.7 forbids implying a result before measurement, and the brief names
+   "clearly marked mock data" as a deliverable. A quiet outlined pill was the
+   least prominent thing on the page. Full width, accent-washed, with a solid
+   accent edge — visible without shouting. */
 .mockFlag {
-  align-self: flex-start;
-  padding: var(--space-5) var(--space-10);
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-10) var(--space-16);
   border: 1px solid var(--accent-border-soft);
-  border-radius: var(--radius-sm);
+  border-inline-start: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--accent-wash);
   color: var(--color-body);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-md);
 }
 
 .mockFlag strong {

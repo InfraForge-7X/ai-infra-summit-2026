@@ -17,10 +17,12 @@
   max-inline-size: 616px;
 }
 
+/* The one heading that takes the accent: it names the current target, so it
+   is carrying the decision rather than decorating the hierarchy. */
 .heading {
   font-size: var(--fs-xl);
   font-weight: var(--fw-medium);
-  color: var(--color-heading);
+  color: var(--accent);
 }
 
 .body {

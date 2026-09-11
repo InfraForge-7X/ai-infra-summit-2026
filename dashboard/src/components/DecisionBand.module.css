@@ -77,11 +77,23 @@
   line-height: var(--lh-card);
 }
 
+/* A bare green dot vanished on the LOCAL card, which is also green. The ring
+   separates it from whatever background it lands on. */
 .dot {
   inline-size: 9px;
   block-size: 9px;
   border-radius: 50%;
   background: var(--color-accent-green);
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 45%);
+}
+
+.fail {
+  background: var(--color-fail);
+}
+
+.idle {
+  background: var(--color-white);
+  opacity: 0.6;
 }
 
 /* -------------------------------------------------- score and reason cards */
@@ -139,9 +151,10 @@
   background: var(--accent);
 }
 
+/* Pinning this to the bottom left ~120px of dead space when `reasons` had one
+   entry, and the contract only guarantees one. It now follows the list. */
 .reasonsAction {
-  margin-block-start: auto;
-  padding-block-start: var(--space-15);
+  margin-block-start: var(--space-15);
 }
 
 @media (max-width: 600px) {

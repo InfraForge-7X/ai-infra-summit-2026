@@ -16,7 +16,7 @@
 .heading {
   font-size: var(--fs-xl);
   font-weight: var(--fw-medium);
-  color: var(--color-heading);
+  color: var(--color-black);
 }
 
 .bad .heading {

@@ -38,22 +38,18 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-8);
-  block-size: 30px;
-  padding: var(--space-8) var(--space-16);
+  block-size: 40px;
+  padding: var(--space-8) var(--space-15);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
-  color: var(--color-black);
-  font-size: var(--fs-2xs);
+  color: var(--color-charcoal);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
   line-height: var(--lh-ui);
 }
 
-.clockIcon {
-  display: grid;
-  place-items: center;
-  inline-size: 20px;
-  block-size: 20px;
-  border-radius: var(--radius-xs);
+.clock svg {
   color: var(--color-muted);
 }
 

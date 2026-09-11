@@ -22,6 +22,7 @@ import styles from './DemoControlsDrawer.module.css'
  * @param {boolean} props.open
  * @param {() => void} props.onClose
  * @param {(scenarioKey: string) => void} props.onSelect
+ * @param {() => void} props.onChangeWorkload
  * @param {() => void} props.onRunBaseline
  * @param {string} props.current
  */
@@ -29,6 +30,7 @@ export default function DemoControlsDrawer({
   open,
   onClose,
   onSelect,
+  onChangeWorkload,
   onRunBaseline,
   current,
 }) {
@@ -54,14 +56,28 @@ export default function DemoControlsDrawer({
           active={current === 'running'}
         />
         <Control
+          label="Change workload"
+          hint="Edit the WorkloadProfile fields"
+          onClick={() => {
+            onChangeWorkload()
+            onClose()
+          }}
+        />
+        <Control
+          label="Speech workload"
+          hint="A different modality through the same routing core — fps reads as an em dash"
+          onClick={choose('speech')}
+          active={current === 'speech'}
+        />
+      </Group>
+
+      <Group title="Conditions" hint="Change infrastructure and watch routing respond">
+        <Control
           label="Reroute under pressure"
           hint="Edge saturates, the work moves and the interface changes colour"
           onClick={choose('rerouted')}
           active={current === 'rerouted'}
         />
-      </Group>
-
-      <Group title="Conditions" hint="Change infrastructure and watch routing respond">
         <Control
           label="Hold instead of move"
           hint="A better target exists but the gain is under the switching threshold"

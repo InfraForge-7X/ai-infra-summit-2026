@@ -23,7 +23,6 @@ export default function BaselinePanel({ baseline, execution, reroutes }) {
         <SectionHeader
           title="Static baseline"
           lede="Same workload, fixed destination, no re-evaluation"
-          accent
         />
         <p className={styles.empty}>
           Run the static baseline to compare a fixed destination against adaptive
@@ -39,7 +38,6 @@ export default function BaselinePanel({ baseline, execution, reroutes }) {
       <SectionHeader
         title="Static baseline vs adaptive"
         lede="Identical workload and conditions"
-        accent
       />
 
       <div className={styles.columns}>

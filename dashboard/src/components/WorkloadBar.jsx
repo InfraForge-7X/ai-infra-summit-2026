@@ -14,7 +14,10 @@ import styles from './WorkloadBar.module.css'
 export default function WorkloadBar({ workload }) {
   return (
     <div className={styles.chips}>
-      <Chip label="Workload task" value={workload.task_id.replace(/^task-/, '')} />
+      {/* The real task_id, not a tidied fragment of it — the decision drawer
+          shows the same value in the raw payload, and two renderings of one
+          identifier is one too many. */}
+      <Chip label="Workload" value={workload.task_id} />
       <Chip label={WORKLOAD_LABEL[workload.workload_type]} value={workload.model} />
       <Chip label="Input" value={`${workload.input_size}px`} />
       <Chip

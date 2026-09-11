@@ -246,6 +246,33 @@ export const SCENARIOS = {
     history: baseHistory,
   },
 
+  // §29.6 step 5 — a speech workload, to show the routing core is
+  // workload-agnostic (§29.2). Speech has no frames, so `fps` is null and the
+  // metric reads as an em dash. That is the contract working, not a gap.
+  speech: {
+    label: 'Running a speech workload',
+    caption:
+      'Same routing core, different modality. Frames per second has no value for speech, so it reads as an em dash rather than zero.',
+    decision: decisionOf({
+      target: 'edge',
+      score: 0.68,
+      reasons: ['Latency within requirement', 'Compute headroom available'],
+    }),
+    execution: executionOf({ target: 'edge', network_latency_ms: 18, fps: null }),
+    states: infrastructure(),
+    history: [
+      {
+        id: 'ev-speech',
+        time: '03:22:02',
+        kind: 'decision',
+        target: 'edge',
+        score: 0.68,
+        reason: 'Latency within requirement',
+      },
+      ...baseHistory,
+    ],
+  },
+
   idle: {
     label: 'No workload running',
     caption: 'Start a workload and AFRI-EDGE picks an execution target.',

@@ -1,4 +1,4 @@
-import { Timer01Icon } from '@hugeicons/core-free-icons'
+import { Settings01Icon, Timer01Icon } from '@hugeicons/core-free-icons'
 import { useEffect, useState } from 'react'
 
 import { Button, Icon } from './ui/ui.jsx'
@@ -29,16 +29,16 @@ export default function TopBar({ onOpenDemoControls }) {
         </p>
 
         <div className={styles.actions}>
+          {/* Icon first, like every other icon-and-label pairing on the page. */}
           <span className={styles.clock}>
+            <Icon icon={Timer01Icon} size={16} />
             <span className="is-live" style={{ '--live-width': '8ch' }}>
               {clock}
             </span>
-            <span className={styles.clockIcon}>
-              <Icon icon={Timer01Icon} size={11} />
-            </span>
           </span>
           <Button small onClick={onOpenDemoControls}>
-            Demo control
+            <Icon icon={Settings01Icon} size={16} />
+            Demo controls
           </Button>
         </div>
       </div>
