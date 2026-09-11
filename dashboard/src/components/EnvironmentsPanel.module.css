@@ -1,21 +1,30 @@
+/* No surface of its own.
+ *
+ * This was a white panel holding three white cards, so the cards were white on
+ * white separated by a hairline: they read as faint divisions of one block
+ * rather than as three things being compared. The panel was never carrying
+ * information — the heading groups the set and the grid spaces it.
+ *
+ * Dropping it also makes the chosen environment easier to see, which is the
+ * whole point of the section: a card now lifts off the field behind it instead
+ * of competing with a panel its own colour.
+ */
 .panel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-10);
-  padding-block: var(--space-21);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+  gap: var(--space-15);
 }
 
+/* Flush with the cards below, and so with the outer edge of every sibling card
+   in the stack. This heading names the set; it does not sit in a box with it. */
 .head {
-  padding-inline: var(--space-20);
+  padding-inline: 0;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: var(--space-15);
-  padding-inline: var(--space-20);
   align-items: stretch;
 }
 

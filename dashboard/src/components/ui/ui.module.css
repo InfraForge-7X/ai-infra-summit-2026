@@ -150,6 +150,21 @@
 }
 
 /* ------------------------------------------------------------ metric tile */
+
+/* No box.
+ *
+ * A tile used to carry a fill, a border and a radius, which put a bordered
+ * box inside a bordered card inside a bordered field — three frames around
+ * one reading. A border earns its place when a thing must be told apart from
+ * a sibling it could be confused with; six readouts under one heading are
+ * already grouped by that heading, and a label sitting above its value is
+ * already a pair. The box was drawing a relationship the type had drawn
+ * first.
+ *
+ * What replaces it is space. The grid gap is now wide enough to separate the
+ * columns on its own, which is why this rule keeps a min-block-size: the
+ * tiles still have to sit on a common rhythm now that nothing outlines them.
+ */
 .tile {
   display: flex;
   flex-direction: column;
@@ -158,13 +173,7 @@
   /* 210px is the designed width; below that the tile shrinks rather than
      pushing the card open. */
   min-inline-size: min(210px, 100%);
-  min-block-size: 76px;
-  padding: var(--space-10) var(--space-15);
-  /* A hairline edge: #f9f9f9 on white is barely a surface, so the tiles read
-     as smudges rather than as a set of readouts. */
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-tile);
+  min-block-size: 62px;
   color: var(--color-strong);
 }
 

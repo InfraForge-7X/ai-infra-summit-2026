@@ -1,9 +1,9 @@
+/* One sentence explaining an empty state does not need a box drawn round it.
+   It was a bordered panel inside a bordered card, framing a paragraph that was
+   never in danger of being confused with anything else. */
 .empty {
-  padding: var(--space-15);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-tile);
-  color: var(--color-strong);
+  max-inline-size: 70ch;
+  color: var(--color-body);
   font-size: var(--fs-md);
 }
 

@@ -202,3 +202,14 @@
     font-size: var(--fs-3xl);
   }
 }
+
+/* Two columns fit here but three do not, so the reasons card was landing alone
+   on the second row at half width with a hole beside it. Let it take the whole
+   row: a list of reasons reads perfectly well wide, and the alternative is a
+   gap that looks like something failed to load. */
+@media (min-width: 601px) and (max-width: 960px) {
+  .band > :last-child {
+    grid-column: 1 / -1;
+    min-block-size: 0;
+  }
+}

@@ -15,7 +15,13 @@
      third of the row, so six tiles land as 3 x 2, then 2 x 3, then one column. */
   grid-template-columns: repeat(
     auto-fit,
-    minmax(max(160px, calc(33.333% - var(--space-10))), 1fr)
+    minmax(max(160px, calc(33.333% - var(--space-16))), 1fr)
   );
-  gap: var(--space-15);
+  /* Wider than it was, because the tiles no longer carry borders: with nothing
+     outlining them, the gap is the only thing separating one reading from the
+     next, so it has to be unambiguous. Rows get more room than columns — two
+     values stacked vertically run together far more easily than two side by
+     side, which the labels already separate. */
+  column-gap: var(--space-24);
+  row-gap: var(--space-26);
 }
