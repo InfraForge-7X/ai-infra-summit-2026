@@ -96,7 +96,7 @@ class TestInMemoryStateStoreRegistration:
         store.register(old_state)
         store.register(new_state)
 
-        retrieved = store.get_latest(ExecutionTarget.LOCAL)
+        retrieved = store.get_latest_state(ExecutionTarget.LOCAL)
         assert retrieved is not None
         assert retrieved.cpu_usage == 70.0
         assert retrieved.timestamp == new_time
@@ -122,7 +122,7 @@ class TestInMemoryStateStoreRegistration:
         store.register(new_state)
         store.register(old_state)  # Should be ignored
 
-        retrieved = store.get_latest(ExecutionTarget.LOCAL)
+        retrieved = store.get_latest_state(ExecutionTarget.LOCAL)
         assert retrieved is not None
         assert retrieved.cpu_usage == 70.0
         assert retrieved.timestamp == new_time
@@ -131,7 +131,7 @@ class TestInMemoryStateStoreRegistration:
 class TestInMemoryStateStoreRetrieval:
     """Tests for state retrieval functionality."""
 
-    def test_get_latest_existing_target(self) -> None:
+    def test_get_latest_state_existing_target(self) -> None:
         """Test retrieving latest state for an existing target."""
         store = InMemoryStateStore()
         state = create_infrastructure_state(
@@ -141,40 +141,40 @@ class TestInMemoryStateStoreRetrieval:
         )
 
         store.register(state)
-        retrieved = store.get_latest(ExecutionTarget.EDGE)
+        retrieved = store.get_latest_state(ExecutionTarget.EDGE)
 
         assert retrieved is not None
         assert retrieved.target == ExecutionTarget.EDGE
         assert retrieved.cpu_usage == 45.0
         assert retrieved.ram_usage == 55.0
 
-    def test_get_latest_missing_target_returns_none(self) -> None:
+    def test_get_latest_state_missing_target_returns_none(self) -> None:
         """Test that missing target returns None."""
         store = InMemoryStateStore()
 
-        result = store.get_latest(ExecutionTarget.CLOUD)
+        result = store.get_latest_state(ExecutionTarget.CLOUD)
 
         assert result is None
 
-    def test_get_latest_after_registration(self) -> None:
+    def test_get_latest_state_after_registration(self) -> None:
         """Test retrieval returns registered state."""
         store = InMemoryStateStore()
         state = create_infrastructure_state(target=ExecutionTarget.LOCAL)
 
-        assert store.get_latest(ExecutionTarget.LOCAL) is None
+        assert store.get_latest_state(ExecutionTarget.LOCAL) is None
         store.register(state)
-        assert store.get_latest(ExecutionTarget.LOCAL) is not None
+        assert store.get_latest_state(ExecutionTarget.LOCAL) is not None
 
-    def test_get_all_latest_empty_store(self) -> None:
-        """Test get_all_latest on empty store returns empty sequence."""
+    def test_get_all_latest_states_empty_store(self) -> None:
+        """Test get_all_latest_states on empty store returns empty sequence."""
         store = InMemoryStateStore()
 
-        result = store.get_all_latest()
+        result = store.get_all_latest_states()
 
         assert len(result) == 0
 
-    def test_get_all_latest_with_states(self) -> None:
-        """Test get_all_latest returns all registered states."""
+    def test_get_all_latest_states_with_states(self) -> None:
+        """Test get_all_latest_states returns all registered states."""
         store = InMemoryStateStore()
 
         local_state = create_infrastructure_state(target=ExecutionTarget.LOCAL)
@@ -183,7 +183,7 @@ class TestInMemoryStateStoreRetrieval:
         store.register(local_state)
         store.register(edge_state)
 
-        result = store.get_all_latest()
+        result = store.get_all_latest_states()
 
         assert len(result) == 2
         targets = {s.target for s in result}
@@ -193,7 +193,7 @@ class TestInMemoryStateStoreRetrieval:
 class TestInMemoryStateStoreFreshness:
     """Tests for freshness/staleness detection."""
 
-    def test_is_fresh_with_recent_state(self) -> None:
+    def test_is_state_fresh_with_recent_state(self) -> None:
         """Test that recent state is considered fresh."""
         store = InMemoryStateStore()
         now = datetime.now(timezone.utc)
@@ -203,11 +203,11 @@ class TestInMemoryStateStoreFreshness:
         )
 
         store.register(state)
-        is_fresh = store.is_fresh(ExecutionTarget.LOCAL, max_age=timedelta(minutes=1), now=now)
+        is_state_fresh = store.is_state_fresh(ExecutionTarget.LOCAL, max_age=timedelta(minutes=1), now=now)
 
-        assert is_fresh is True
+        assert is_state_fresh is True
 
-    def test_is_fresh_with_stale_state(self) -> None:
+    def test_is_state_fresh_with_stale_state(self) -> None:
         """Test that old state is considered stale."""
         store = InMemoryStateStore()
         now = datetime.now(timezone.utc)
@@ -217,19 +217,19 @@ class TestInMemoryStateStoreFreshness:
         )
 
         store.register(state)
-        is_fresh = store.is_fresh(ExecutionTarget.LOCAL, max_age=timedelta(minutes=1), now=now)
+        is_state_fresh = store.is_state_fresh(ExecutionTarget.LOCAL, max_age=timedelta(minutes=1), now=now)
 
-        assert is_fresh is False
+        assert is_state_fresh is False
 
-    def test_is_fresh_with_missing_target(self) -> None:
+    def test_is_state_fresh_with_missing_target(self) -> None:
         """Test that missing target is not fresh."""
         store = InMemoryStateStore()
 
-        is_fresh = store.is_fresh(ExecutionTarget.CLOUD, max_age=timedelta(minutes=1))
+        is_state_fresh = store.is_state_fresh(ExecutionTarget.CLOUD, max_age=timedelta(minutes=1))
 
-        assert is_fresh is False
+        assert is_state_fresh is False
 
-    def test_is_fresh_at_boundary(self) -> None:
+    def test_is_state_fresh_at_boundary(self) -> None:
         """Test freshness at exact max_age boundary."""
         store = InMemoryStateStore()
         now = datetime.now(timezone.utc)
@@ -239,9 +239,9 @@ class TestInMemoryStateStoreFreshness:
         )
 
         store.register(state)
-        is_fresh = store.is_fresh(ExecutionTarget.LOCAL, max_age=timedelta(minutes=1), now=now)
+        is_state_fresh = store.is_state_fresh(ExecutionTarget.LOCAL, max_age=timedelta(minutes=1), now=now)
 
-        assert is_fresh is True  # Boundary is inclusive
+        assert is_state_fresh is True  # Boundary is inclusive
 
     def test_get_state_with_freshness_fresh(self) -> None:
         """Test get_state_with_freshness returns correct freshness info."""
@@ -501,9 +501,9 @@ class TestInMemoryStateStoreTimezoneHandling:
         )
 
         store.register(state)
-        is_fresh = store.is_fresh(ExecutionTarget.LOCAL, max_age=timedelta(minutes=1), now=now)
+        is_state_fresh = store.is_state_fresh(ExecutionTarget.LOCAL, max_age=timedelta(minutes=1), now=now)
 
-        assert is_fresh is True
+        assert is_state_fresh is True
 
     def test_handles_timezone_naive_timestamp(self) -> None:
         """Test that timezone-naive timestamps are treated as UTC."""
@@ -635,7 +635,7 @@ class TestDecisionEngineIntegration:
         store.register(cloud_state)
 
         # Decision Engine would call this
-        states = store.get_all_latest()
+        states = store.get_all_latest_states()
 
         assert len(states) == 3
         # Verify we can access all state properties needed for decision

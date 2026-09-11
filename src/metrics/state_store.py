@@ -60,7 +60,7 @@ class StateStore(ABC):
         ...
 
     @abstractmethod
-    def get_latest(self, target: ExecutionTarget) -> InfrastructureState | None:
+    def get_latest_state(self, target: ExecutionTarget) -> InfrastructureState | None:
         """Retrieve the most recent state for a specific target.
 
         Args:
@@ -72,7 +72,7 @@ class StateStore(ABC):
         ...
 
     @abstractmethod
-    def get_all_latest(self) -> Sequence[InfrastructureState]:
+    def get_all_latest_states(self) -> Sequence[InfrastructureState]:
         """Retrieve the latest state for all known targets.
 
         Returns:
@@ -101,7 +101,7 @@ class StateStore(ABC):
         ...
 
     @abstractmethod
-    def is_fresh(
+    def is_state_fresh(
         self,
         target: ExecutionTarget,
         max_age: timedelta,
@@ -209,12 +209,12 @@ class InMemoryStateStore(StateStore):
             if existing is None or state.timestamp > existing.timestamp:
                 self._states[state.target] = state
 
-    def get_latest(self, target: ExecutionTarget) -> InfrastructureState | None:
+    def get_latest_state(self, target: ExecutionTarget) -> InfrastructureState | None:
         """Retrieve the most recent state for a specific target."""
         with self._lock:
             return self._states.get(target)
 
-    def get_all_latest(self) -> Sequence[InfrastructureState]:
+    def get_all_latest_states(self) -> Sequence[InfrastructureState]:
         """Retrieve the latest state for all known targets."""
         with self._lock:
             return list(self._states.values())
@@ -242,7 +242,7 @@ class InMemoryStateStore(StateStore):
 
             return TargetState(state=state, is_fresh=is_fresh, age=age)
 
-    def is_fresh(
+    def is_state_fresh(
         self,
         target: ExecutionTarget,
         max_age: timedelta,
