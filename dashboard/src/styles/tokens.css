@@ -55,6 +55,7 @@
   --color-strong: #1d1e20;    /* metric tile text */
   --color-heading: #100070;   /* guide + baseline headings */
   --color-on-accent: #f1f1f1; /* caption on the target card */
+  --color-hint: rgba(29, 30, 32, 0.58); /* drawer group and control captions */
 
   /* Execution targets. These three are the product's core concept. */
   --color-local: #0e7c63;
@@ -108,6 +109,8 @@
   --layout-canvas: 1440px;
   --layout-content: 1398px;
   --layout-gutter: 20px;
+  --drawer-width: 528px;   /* panel; content is 500px inside a 16px inset */
+  --scrim: rgba(25, 28, 42, 0.34);
 
   --bar-track-height: 5px;   /* environment CPU / RAM bars */
   --meter-height: 14px;      /* routing score meter */

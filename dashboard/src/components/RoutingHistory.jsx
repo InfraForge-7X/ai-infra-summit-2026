@@ -9,13 +9,14 @@ const TARGET_COLOR = {
 }
 
 /**
- * Decisions, reroutes and holds in order, newest first.
+ * Decisions, reroutes, holds and failures in order, newest first.
  *
  * A rail rather than a stack of cards: this is a sequence, and cards would
- * flatten it. Reroutes get a filled marker so a move is findable at a glance.
+ * flatten it. Reroutes and failures get a filled marker, so the two moments
+ * that matter are findable at a glance.
  *
- * There is no history or event model in `src/shared` — this shape is the
- * frontend's own until Tsadok defines one, which the header says out loud.
+ * There is no history or event model in `src/shared`. Tsadok confirmed the
+ * shape stays local and provisional for now, which the header says out loud.
  *
  * @param {object} props
  * @param {import('../mocks/fixtures.js').RoutingEvent[]} props.events
@@ -30,36 +31,57 @@ export default function RoutingHistory({ events }) {
 
       {events.length === 0 ? (
         <p className={styles.empty}>
-          Decisions, reroutes and failures land here in order.
+          Decisions, reroutes, holds and failures land here in order.
         </p>
       ) : (
         <ol className={styles.rail}>
           {events.map((event) => (
             <li
               key={event.id}
-              className={`${styles.event} ${event.kind === 'reroute' ? styles.marked : ''}`}
-              style={{ '--event-color': TARGET_COLOR[event.target] }}
+              className={[
+                styles.event,
+                event.kind === 'reroute' || event.kind === 'failure' ? styles.marked : '',
+              ].join(' ')}
+              style={{ '--event-color': eventColor(event) }}
             >
               <p className={styles.time}>{event.time}</p>
-              <p className={styles.headline}>
-                {event.from ? (
-                  <>
-                    {TARGET_LABEL[event.from]} →{' '}
-                    <span className={styles.target}>{TARGET_LABEL[event.target]}</span>
-                  </>
-                ) : (
-                  <>
-                    Routed to <span className={styles.target}>{TARGET_LABEL[event.target]}</span>
-                  </>
-                )}
-              </p>
-              <p className={styles.detail}>
-                Score {asScore(event.score)} · {event.reason}
-              </p>
+              <p className={styles.headline}>{headline(event)}</p>
+              <p className={styles.detail}>{detail(event)}</p>
             </li>
           ))}
         </ol>
       )}
     </Card>
   )
+}
+
+/** @param {import('../mocks/fixtures.js').RoutingEvent} event */
+function eventColor(event) {
+  if (event.kind === 'failure') return 'var(--color-fail)'
+  // A hold is deliberately quiet — nothing moved, and colouring it like a
+  // reroute would overstate it.
+  if (event.kind === 'hold') return 'var(--color-muted)'
+  return TARGET_COLOR[event.target]
+}
+
+/** @param {import('../mocks/fixtures.js').RoutingEvent} event */
+function headline(event) {
+  const target = <span className={styles.target}>{TARGET_LABEL[event.target]}</span>
+
+  if (event.kind === 'reroute' && event.from) {
+    return (
+      <>
+        {TARGET_LABEL[event.from]} → {target}
+      </>
+    )
+  }
+  if (event.kind === 'hold') return <>Held on {target}</>
+  if (event.kind === 'failure') return <>Routing failed</>
+  return <>Routed to {target}</>
+}
+
+/** @param {import('../mocks/fixtures.js').RoutingEvent} event */
+function detail(event) {
+  if (event.kind === 'failure') return event.reason
+  return `Score ${asScore(event.score)} · ${event.reason}`
 }

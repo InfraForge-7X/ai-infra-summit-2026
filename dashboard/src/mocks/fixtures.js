@@ -105,7 +105,7 @@ export const execution = {
  * @typedef {object} RoutingEvent
  * @property {string} id
  * @property {string} time              Display time, HH:MM:SS
- * @property {'decision' | 'reroute'} kind
+ * @property {'decision' | 'reroute' | 'hold' | 'failure'} kind
  * @property {ExecutionTarget} target
  * @property {ExecutionTarget} [from]   Present on a reroute
  * @property {number} score

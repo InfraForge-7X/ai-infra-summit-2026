@@ -1,15 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import * as api from './api/client.js'
+import BaselinePanel from './components/BaselinePanel.jsx'
 import DecisionBand from './components/DecisionBand.jsx'
+import DemoControlsDrawer from './components/DemoControlsDrawer.jsx'
 import EnvironmentsPanel from './components/EnvironmentsPanel.jsx'
 import ExecutionPanel from './components/ExecutionPanel.jsx'
 import GuideStrip from './components/GuideStrip.jsx'
+import Notice from './components/Notice.jsx'
 import RoutingHistory from './components/RoutingHistory.jsx'
 import TopBar from './components/TopBar.jsx'
 import WorkloadBar from './components/WorkloadBar.jsx'
-import { workload } from './mocks/fixtures.js'
 import { Button, SectionHeader } from './components/ui/ui.jsx'
+import { workload } from './mocks/fixtures.js'
+import { BASELINE } from './mocks/scenarios.js'
 import styles from './App.module.css'
 
 /**
@@ -18,54 +22,52 @@ import styles from './App.module.css'
  * One screen. Navigation would hide the reroute, and the reroute is the
  * product. Drawers are state, not routes — there is no router in this app.
  *
- * The execution target on `data-target` comes from the RoutingDecision and
- * nothing else. This component never scores, ranks or chooses; it renders
- * what the Routing API decided. (DoD item #8.)
+ * `scenarioKey` selects which canned set of API responses is being displayed.
+ * It is demo scaffolding: the real dashboard polls and re-renders. What it is
+ * NOT is a decision — the target, score and reasons always arrive on a
+ * RoutingDecision, and this component never derives them. (DoD item #8.)
  */
 export default function App() {
-  const [decision, setDecision] = useState(/** @type {any} */ (null))
-  const [states, setStates] = useState(/** @type {any} */ (null))
-  const [execution, setExecution] = useState(/** @type {any} */ (null))
-  const [history, setHistory] = useState(/** @type {any[]} */ ([]))
+  const [scenarioKey, setScenarioKey] = useState('running')
+  const [baseline, setBaseline] = useState(
+    /** @type {import('./mocks/scenarios.js').Baseline | null} */ (null),
+  )
+  const [controlsOpen, setControlsOpen] = useState(false)
+  // Stamped when we last displayed a real decision, so a 503 can say how old
+  // the numbers on screen are. Recorded where the change happens rather than
+  // in an effect, which would re-render for nothing.
+  const [lastGoodAt, setLastGoodAt] = useState(() =>
+    new Date().toLocaleTimeString('en-GB'),
+  )
 
-  useEffect(() => {
-    let cancelled = false
+  // Still read through the client seam: when the API is live this becomes a
+  // poll of GET /state, /execution/{task_id} and /history.
+  const scenario = api.selectScenario(scenarioKey)
+  const { decision, execution, states, history, error = null } = scenario
 
-    async function load() {
-      const [nextDecision, nextStates, nextExecution, nextHistory] = await Promise.all([
-        api.route(workload),
-        api.getInfrastructureState(),
-        api.getExecution(workload.task_id),
-        api.getHistory(),
-      ])
-      if (cancelled) return
-      setDecision(nextDecision)
-      setStates(nextStates)
-      setExecution(nextExecution)
-      setHistory(nextHistory)
+  /** @param {string} key */
+  const selectScenario = (key) => {
+    const next = api.selectScenario(key)
+    if (!next.error && next.decision) {
+      setLastGoodAt(new Date().toLocaleTimeString('en-GB'))
     }
-
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  if (!decision || !states || !execution) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.inner}>
-          <TopBar />
-          <p className={styles.loading}>Choosing a target…</p>
-        </div>
-      </div>
-    )
+    setScenarioKey(key)
   }
 
+  const reroutes = useMemo(
+    () => history.filter((event) => event.kind === 'reroute').length,
+    [history],
+  )
+
+  // A 503 keeps the last known state on screen — the numbers are still there
+  // but no longer true, and the user needs to know how stale they are. Every
+  // other error clears the board, because nothing was dispatched.
+  const showsDashboard = Boolean(decision && execution && (!error || error.showsLastKnownState))
+
   return (
-    <div className={styles.page} data-target={decision.target}>
+    <div className={styles.page} data-target={decision?.target ?? 'cloud'}>
       <div className={styles.inner}>
-        <TopBar />
+        <TopBar onOpenDemoControls={() => setControlsOpen(true)} />
 
         {api.USING_MOCK_DATA ? (
           <p className={styles.mockFlag}>
@@ -75,16 +77,21 @@ export default function App() {
         ) : null}
 
         <GuideStrip
-          heading="Running on EDGE"
-          body="Use the button on the right to step through the demo, or open demo controls for every state."
+          heading={scenario.label}
+          body={scenario.caption}
           actionLabel="Start workload"
+          onAction={() => selectScenario('running')}
         />
 
         <section className={styles.stack}>
           <div className={styles.stackHead}>
             <SectionHeader
-              title="Base line recorded"
-              lede="Compare the two at the bottom. No improvement is claimed until both runs are measured for real."
+              title={baseline ? 'Baseline recorded' : 'Current workload'}
+              lede={
+                baseline
+                  ? 'Compare the two at the bottom. No improvement is claimed until both runs are measured for real.'
+                  : 'The WorkloadProfile sent to the Routing API.'
+              }
               gap={7}
             />
             <Button>Change workload</Button>
@@ -92,16 +99,62 @@ export default function App() {
 
           <WorkloadBar workload={workload} />
 
-          <DecisionBand decision={decision} status={execution.status} />
+          {error ? (
+            <Notice
+              tone="bad"
+              heading={`${error.status} — ${error.title}`}
+              body={error.body}
+              actionLabel="Try again"
+              onAction={() => selectScenario('running')}
+              stamp={
+                error.showsLastKnownState && lastGoodAt
+                  ? `last update ${lastGoodAt}`
+                  : undefined
+              }
+            />
+          ) : null}
 
-          <EnvironmentsPanel states={states} chosen={decision.target} />
+          {!error && !decision ? (
+            <Notice
+              tone={scenarioKey === 'routingFailed' ? 'bad' : 'neutral'}
+              heading={
+                scenarioKey === 'routingFailed'
+                  ? 'Routing failed — no eligible target'
+                  : 'No workload running'
+              }
+              body={
+                scenarioKey === 'routingFailed'
+                  ? 'Every environment failed a hard constraint, so nothing was dispatched. Relax the workload requirements or restore an environment, then route again.'
+                  : 'Start a workload and AFRI-EDGE picks an execution target, then keeps watching conditions and moves the work if something better appears.'
+              }
+              actionLabel={scenarioKey === 'routingFailed' ? 'Route again' : 'Start workload'}
+              onAction={() => selectScenario('running')}
+            />
+          ) : null}
 
-          <div className={styles.split}>
-            <ExecutionPanel execution={execution} targetState={states[execution.target]} />
-            <RoutingHistory events={history} />
-          </div>
+          {showsDashboard ? (
+            <>
+              <DecisionBand decision={decision} status={execution.status} />
+              <EnvironmentsPanel states={states} chosen={decision.target} />
+
+              <div className={styles.split}>
+                <ExecutionPanel execution={execution} targetState={states[execution.target]} />
+                <RoutingHistory events={history} />
+              </div>
+            </>
+          ) : null}
+
+          <BaselinePanel baseline={baseline} execution={execution} reroutes={reroutes} />
         </section>
       </div>
+
+      <DemoControlsDrawer
+        open={controlsOpen}
+        onClose={() => setControlsOpen(false)}
+        onSelect={selectScenario}
+        onRunBaseline={() => setBaseline(BASELINE)}
+        current={scenarioKey}
+      />
     </div>
   )
 }

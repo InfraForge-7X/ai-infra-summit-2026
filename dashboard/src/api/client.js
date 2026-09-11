@@ -18,6 +18,7 @@
  */
 
 import * as fixtures from '../mocks/fixtures.js'
+import { SCENARIOS } from '../mocks/scenarios.js'
 
 /** Every response from this module is mock data. Surfaced in the UI. */
 export const USING_MOCK_DATA = true
@@ -54,6 +55,21 @@ export async function getExecution(_taskId) {
  */
 export async function getHistory() {
   return fixtures.history
+}
+
+/**
+ * Demo scaffolding: returns a complete canned snapshot of what the four
+ * endpoints above would return at one moment. The demo controls pick which.
+ *
+ * This is the one function that disappears when the API lands — the page will
+ * poll the endpoints instead. It selects; it does not decide. No scoring,
+ * eligibility or threshold logic runs here or anywhere else in the frontend.
+ *
+ * @param {string} key
+ * @returns {import('../mocks/scenarios.js').Scenario}
+ */
+export function selectScenario(key) {
+  return SCENARIOS[key] ?? SCENARIOS.running
 }
 
 /**

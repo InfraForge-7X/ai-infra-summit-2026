@@ -1,0 +1,86 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.groupHead {
+  padding-inline: var(--space-5);
+}
+
+.groupTitle {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  color: var(--color-black);
+}
+
+.groupHint {
+  font-size: var(--fs-sm);
+  color: var(--color-hint);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  inline-size: 100%;
+  min-block-size: 60px;
+  padding: var(--space-10);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-align: start;
+}
+
+.control:hover {
+  border-color: var(--color-muted);
+}
+
+.controlLabel {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  color: var(--color-black);
+}
+
+.controlHint {
+  font-size: var(--fs-sm);
+  color: var(--color-hint);
+}
+
+/* Exactly one primary per drawer. Eleven equally-weighted buttons is what made
+   the earlier control bar unreadable. */
+.primary {
+  border-color: transparent;
+  background: var(--accent);
+}
+
+.primary .controlLabel {
+  color: var(--color-white);
+}
+
+.primary .controlHint {
+  color: rgb(255 255 255 / 78%);
+}
+
+.active {
+  border-color: var(--accent);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-10);
+}
+
+@media (max-width: 480px) {
+  .pair {
+    grid-template-columns: 1fr;
+  }
+}

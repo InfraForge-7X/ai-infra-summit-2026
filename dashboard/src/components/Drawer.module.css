@@ -1,0 +1,62 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: var(--scrim);
+}
+
+.panel {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: 80;
+  inline-size: min(var(--drawer-width), 100%);
+  padding: var(--space-18) var(--space-16) var(--space-24);
+  border-inline-start: 1px solid var(--color-border);
+  background: var(--color-surface);
+  overflow-y: auto;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding-block-end: var(--space-15);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.title {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  color: var(--color-black);
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  inline-size: 30px;
+  block-size: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-muted);
+  font-size: var(--fs-lg);
+  line-height: 1;
+}
+
+.close:hover {
+  border-color: var(--color-muted);
+}
+
+.lede {
+  padding-block-start: var(--space-15);
+  color: var(--color-hint);
+  font-size: var(--fs-sm);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-15);
+  padding-block-start: var(--space-19);
+}
