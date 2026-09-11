@@ -77,11 +77,21 @@
   background: var(--color-border);
 }
 
+@keyframes eventIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* Only newly mounted events animate. React reuses keys for the ones already
+   in the list, so a reroute slides its own entry in and leaves the rest still. */
 .event {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  animation: eventIn var(--dur-base) var(--ease);
 }
 
 .event::before {

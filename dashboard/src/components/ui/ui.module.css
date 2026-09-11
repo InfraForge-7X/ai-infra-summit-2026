@@ -9,6 +9,16 @@
   font-size: var(--fs-md);
   line-height: var(--lh-ui);
   white-space: nowrap;
+  /* Confirmation that a press registered — not an entrance. 120ms is below
+     the threshold where motion reads as animation. */
+  transition:
+    border-color var(--dur-fast) ease,
+    background-color var(--dur-slow) ease,
+    transform 80ms ease;
+}
+
+.button:active {
+  transform: translateY(1px);
 }
 
 .ghost {
@@ -81,6 +91,7 @@
 
 /* ------------------------------------------------------------------- tag */
 .tag {
+  transition: background-color var(--dur-slow) ease, border-color var(--dur-slow) ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -92,8 +103,8 @@
   background: var(--accent);
   color: var(--color-white);
   font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
   line-height: var(--lh-ui);
-  box-shadow: var(--shadow-button), var(--shadow-button-inset);
 }
 
 .tagStale {
@@ -105,11 +116,23 @@
 
 /* ----------------------------------------------------------------- meter */
 .track {
+  position: relative;
   inline-size: 100%;
   block-size: var(--meter-height);
   border-radius: var(--radius-xs);
   background: var(--color-page);
-  overflow: hidden;
+}
+
+/* The switching-margin tick. Stands proud of the track on both edges so it
+   reads as a threshold on the scale rather than a notch in the fill. */
+.mark {
+  position: absolute;
+  inset-block: -4px;
+  inline-size: 2px;
+  border-radius: 1px;
+  background: var(--color-charcoal);
+  transform: translateX(-1px);
+  transition: inset-inline-start var(--dur-slow) var(--ease);
 }
 
 .trackThin {
@@ -118,9 +141,12 @@
 
 .fill {
   block-size: 100%;
+  max-inline-size: 100%;
   border-radius: var(--radius-xs);
   background: var(--fill-color, var(--accent));
-  transition: inline-size 0.5s ease;
+  transition:
+    inline-size var(--dur-slow) var(--ease),
+    background-color var(--dur-slow) ease;
 }
 
 /* ------------------------------------------------------------ metric tile */

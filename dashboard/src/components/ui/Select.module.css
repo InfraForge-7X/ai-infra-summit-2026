@@ -19,6 +19,10 @@
   text-align: start;
 }
 
+.trigger {
+  transition: border-color var(--dur-fast) ease;
+}
+
 .trigger:hover {
   border-color: var(--color-muted);
 }
@@ -32,14 +36,22 @@
 .chevron {
   flex: 0 0 auto;
   color: var(--color-muted);
-  transition: transform 0.15s ease;
+  transition: transform var(--dur-base) var(--ease);
 }
 
 .chevronOpen {
   transform: rotate(180deg);
 }
 
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
 .menu {
+  animation: menuIn var(--dur-fast) var(--ease);
   position: absolute;
   inset-inline: 0;
   inset-block-start: calc(100% + var(--space-5));
@@ -54,6 +66,7 @@
 }
 
 .option {
+  transition: background-color var(--dur-fast) ease;
   display: flex;
   align-items: center;
   gap: var(--space-8);

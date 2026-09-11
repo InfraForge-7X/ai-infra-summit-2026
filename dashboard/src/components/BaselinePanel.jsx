@@ -7,9 +7,15 @@ import styles from './BaselinePanel.module.css'
  *
  * Both states are designed: empty in 5798:2, populated in 5808:17345.
  *
- * §29.7 forbids claiming an improvement before measurement, so this panel
- * reports two sets of numbers and draws no conclusion. No percentage, no
- * "2x faster", no green arrow.
+ * Laid out as one table rather than two stacked boxes. Side-by-side lists make
+ * the reader hold a number in their head and hunt for its partner; a row puts
+ * both values on the same line, which is where the comparison actually happens.
+ * It is also genuinely tabular data, so a real <table> gives screen readers the
+ * row and column association for free.
+ *
+ * §29.7 forbids claiming an improvement before measurement, so this reports two
+ * sets of numbers and draws no conclusion — no percentage, no delta column, no
+ * arrows. The reader compares; the dashboard does not argue.
  *
  * @param {object} props
  * @param {import('../mocks/scenarios.js').Baseline | null} props.baseline
@@ -33,6 +39,33 @@ export default function BaselinePanel({ baseline, execution, reroutes }) {
     )
   }
 
+  const rows = [
+    {
+      label: 'Frames per second',
+      unit: '',
+      staticValue: asInt(baseline.fps),
+      adaptiveValue: asInt(execution?.fps),
+    },
+    {
+      label: 'Network latency',
+      unit: 'ms',
+      staticValue: asInt(baseline.network_latency_ms),
+      adaptiveValue: asInt(execution?.network_latency_ms),
+    },
+    {
+      label: 'Reroutes',
+      unit: '',
+      staticValue: asInt(baseline.reroutes),
+      adaptiveValue: asInt(reroutes),
+    },
+    {
+      label: 'Failed frames',
+      unit: '',
+      staticValue: asInt(baseline.failed_frames),
+      adaptiveValue: asInt(0),
+    },
+  ]
+
   return (
     <Card>
       <SectionHeader
@@ -40,24 +73,37 @@ export default function BaselinePanel({ baseline, execution, reroutes }) {
         lede="Identical workload and conditions"
       />
 
-      <div className={styles.columns}>
-        <div className={styles.column}>
-          <h3 className={styles.columnTitle}>
-            Static — pinned to {TARGET_LABEL[baseline.target].toLowerCase()}
-          </h3>
-          <Row label="Frames per second" value={asInt(baseline.fps)} />
-          <Row label="Network latency" value={`${asInt(baseline.network_latency_ms)} ms`} />
-          <Row label="Reroutes" value={asInt(baseline.reroutes)} />
-          <Row label="Failed frames" value={asInt(baseline.failed_frames)} />
-        </div>
-
-        <div className={styles.column}>
-          <h3 className={`${styles.columnTitle} ${styles.adaptive}`}>Adaptive — AFRI-EDGE</h3>
-          <Row label="Frames per second" value={asInt(execution?.fps)} />
-          <Row label="Network latency" value={`${asInt(execution?.network_latency_ms)} ms`} />
-          <Row label="Reroutes" value={asInt(reroutes)} />
-          <Row label="Failed frames" value={asInt(0)} />
-        </div>
+      <div className={styles.scroll}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th scope="col" className={styles.metricHead}>
+                Metric
+              </th>
+              <th scope="col" className={styles.runHead}>
+                Static
+                <span className={styles.runNote}>
+                  pinned to {TARGET_LABEL[baseline.target]}
+                </span>
+              </th>
+              <th scope="col" className={`${styles.runHead} ${styles.adaptive}`}>
+                Adaptive
+                <span className={styles.runNote}>AFRI-EDGE</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.label}>
+                <th scope="row" className={styles.metric}>
+                  {row.label}
+                </th>
+                <Value value={row.staticValue} unit={row.unit} />
+                <Value value={row.adaptiveValue} unit={row.unit} />
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <p className={styles.note}>
@@ -68,12 +114,12 @@ export default function BaselinePanel({ baseline, execution, reroutes }) {
   )
 }
 
-/** @param {{ label: string, value: string }} props */
-function Row({ label, value }) {
+/** @param {{ value: string, unit: string }} props */
+function Value({ value, unit }) {
   return (
-    <div className={styles.row}>
-      <span className={styles.rowLabel}>{label}</span>
-      <span className={styles.rowValue}>{value}</span>
-    </div>
+    <td className={styles.value}>
+      {value}
+      {unit ? <span className={styles.unit}>{unit}</span> : null}
+    </td>
   )
 }

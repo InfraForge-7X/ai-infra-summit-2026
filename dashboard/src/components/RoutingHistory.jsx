@@ -62,9 +62,9 @@ export default function RoutingHistory({ events }) {
 /** @param {import('../mocks/fixtures.js').RoutingEvent} event */
 function eventColor(event) {
   if (event.kind === 'failure') return 'var(--color-fail)'
-  // A hold is deliberately quiet — nothing moved, and colouring it like a
-  // reroute would overstate it.
-  if (event.kind === 'hold') return 'var(--color-muted)'
+  // A hold keeps its target's colour — it is a decision about that target.
+  // Greying it read as disabled, when it is in fact the switching policy
+  // working. The hollow marker already says nothing moved.
   return TARGET_COLOR[event.target]
 }
 

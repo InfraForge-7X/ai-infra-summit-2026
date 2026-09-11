@@ -26,6 +26,7 @@
 }
 
 .control {
+  transition: border-color var(--dur-fast) ease, transform 80ms ease;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -41,6 +42,10 @@
 
 .control:hover {
   border-color: var(--color-muted);
+}
+
+.control:active {
+  transform: translateY(1px);
 }
 
 .controlLabel {

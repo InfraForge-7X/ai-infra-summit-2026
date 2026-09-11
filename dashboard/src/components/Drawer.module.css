@@ -1,8 +1,37 @@
+@keyframes scrimIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes scrimOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes panelIn {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes panelOut {
+  to {
+    transform: translateX(100%);
+  }
+}
+
 .scrim {
   position: fixed;
   inset: 0;
   z-index: 70;
   background: var(--scrim);
+  animation: scrimIn var(--dur-base) var(--ease);
+}
+
+.scrimOut {
+  animation: scrimOut var(--dur-base) var(--ease) forwards;
 }
 
 .panel {
@@ -15,6 +44,13 @@
   border-inline-start: 1px solid var(--color-border);
   background: var(--color-surface);
   overflow-y: auto;
+  /* The panel enters from the edge it is anchored to, so the direction of
+     travel explains where it came from and where closing will send it. */
+  animation: panelIn var(--dur-base) var(--ease);
+}
+
+.panelOut {
+  animation: panelOut var(--dur-base) var(--ease) forwards;
 }
 
 .head {
@@ -26,8 +62,11 @@
   border-block-end: 1px solid var(--color-border);
 }
 
+/* Was 14px, straight from the frame — smaller than a section title at 20px and
+   smaller than the environment names it opens over. A dialog title should sit
+   at or above the level of what it covers. */
 .title {
-  font-size: var(--fs-md);
+  font-size: var(--fs-xl);
   font-weight: var(--fw-medium);
   color: var(--color-black);
 }
@@ -50,8 +89,9 @@
 
 .lede {
   padding-block-start: var(--space-15);
+  max-inline-size: 60ch;
   color: var(--color-hint);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-md);
 }
 
 .body {

@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitForElementToBeRemoved, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
@@ -59,6 +59,8 @@ describe('the live accent follows the decision', () => {
 })
 
 describe('demo controls drawer', () => {
+  // Closing runs an exit animation, so the drawer leaves on the next frame
+  // rather than vanishing — the assertion has to wait for it.
   it('closes on Escape', async () => {
     const user = userEvent.setup()
     render(<App />)
@@ -67,7 +69,7 @@ describe('demo controls drawer', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
 
     await user.keyboard('{Escape}')
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await waitForElementToBeRemoved(() => screen.queryByRole('dialog'))
   })
 
   it('says on its face that it is not part of the product', async () => {

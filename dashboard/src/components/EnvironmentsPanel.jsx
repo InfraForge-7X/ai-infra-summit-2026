@@ -85,7 +85,7 @@ function EnvironmentCard({ state, chosen, adapter }) {
       <dl className={styles.rows}>
         <BarRow label="CPU" value={asPercent(state.cpu_usage)} ratio={state.cpu_usage / 100} color={color} />
         <BarRow label="RAM" value={asPercent(state.ram_usage)} ratio={state.ram_usage / 100} color={color} />
-        <Row label="GPU" value={state.gpu_available ? 'available' : 'none'} />
+        <Row label="GPU" value={state.gpu_available ? 'available' : 'none'} muted={!state.gpu_available} />
         <Row label="Latency" value={asLatency(state.latency_ms)} />
         <Row label="Bandwidth" value={`${asInt(state.bandwidth_mbps)} Mbps`} />
         <Row label="Packet loss" value={`${asOneDecimal(state.packet_loss)}%`} />
@@ -95,12 +95,12 @@ function EnvironmentCard({ state, chosen, adapter }) {
   )
 }
 
-/** @param {{ label: string, value: string }} props */
-function Row({ label, value }) {
+/** @param {{ label: string, value: string, muted?: boolean }} props */
+function Row({ label, value, muted = false }) {
   return (
     <div className={styles.row}>
       <dt className={styles.rowLabel}>{label}</dt>
-      <dd className={styles.rowValue}>{value}</dd>
+      <dd className={`${styles.rowValue} ${muted ? styles.rowValueMuted : ''}`}>{value}</dd>
     </div>
   )
 }

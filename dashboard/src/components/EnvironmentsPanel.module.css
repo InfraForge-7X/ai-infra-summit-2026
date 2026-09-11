@@ -14,18 +14,31 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: var(--space-15);
+  padding-inline: var(--space-20);
   align-items: stretch;
 }
 
+/* The three targets are one comparison, so at tablet width they stack rather
+   than leaving the third alone on a second row. */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Every card carries an edge. Only the chosen one had a border before, so the
+   other two read as loose columns of text sitting beside a card rather than as
+   the same kind of thing. */
 .card {
+  transition: border-color var(--dur-slow) ease, box-shadow var(--dur-slow) ease;
   display: flex;
   flex-direction: column;
   gap: var(--space-10);
   padding: var(--space-18) var(--space-20) var(--space-19);
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
-  filter: drop-shadow(var(--shadow-drop));
 }
 
 /* The chosen environment is marked three ways — border, wash and the live
@@ -55,34 +68,50 @@
   line-height: var(--lh-card);
 }
 
+/* Baseline-aligned row rather than inline text: the smaller adapter label was
+   growing the name's line box, so the EDGE card's freshness line sat a few
+   pixels below its neighbours' and the set stopped lining up. */
 .name {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8);
   font-size: var(--fs-lg);
   font-weight: var(--fw-medium);
+  line-height: var(--lh-card);
+  /* Fixed, so a card with an adapter label cannot be 3px taller than one
+     without and knock the whole row out of alignment. */
+  block-size: var(--lh-card);
 }
 
 .adapter {
-  margin-inline-start: var(--space-8);
   color: var(--color-hint);
   font-size: var(--fs-sm);
   font-weight: var(--fw-regular);
 }
 
+/* Was 16px: louder than the numbers it describes and nearly the size of the
+   target name. Freshness qualifies the reading; it is not the reading. */
 .fresh {
-  font-size: var(--fs-base);
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
   font-weight: var(--fw-regular);
+  line-height: var(--lh-ui);
 }
 
 .rows {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-10);
   margin: 0;
 }
 
+/* The bar belongs to the number above it, so it sits closer to that row than
+   the rows sit to each other. Otherwise it reads as a rule between them. */
 .barRow {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-4);
+  padding-block-end: var(--space-4);
 }
 
 .row {
@@ -105,4 +134,11 @@
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   white-space: nowrap;
+}
+
+/* An absence is not a reading. "none" should not sit at the same weight as
+   a measured value. */
+.rowValueMuted {
+  color: var(--color-muted);
+  font-weight: var(--fw-regular);
 }

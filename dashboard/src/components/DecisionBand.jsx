@@ -37,7 +37,14 @@ const TARGET_ICON = {
  */
 export default function DecisionBand({ decision, status, onSeeDecision }) {
   return (
-    <div className={styles.band}>
+    /*
+     * The design spec allows exactly one moment of motion: the reroute. Keying
+     * the band on the target remounts it when — and only when — the work moves,
+     * so the wash animation runs on that change and on nothing else. A scenario
+     * that keeps the same target (a 503, say) does not re-key, so it does not
+     * flash. No effect, no timer, no state.
+     */
+    <div className={styles.band} key={decision.target}>
       <TargetCard target={decision.target} status={status} />
       <ScoreCard score={decision.score} />
       <ReasonsCard reasons={decision.reasons} onSeeDecision={onSeeDecision} />
@@ -89,14 +96,30 @@ function ScoreCard({ score }) {
         <span className={styles.scoreUnit}>/1.00</span>
       </p>
 
-      <Meter value={score} label={`Routing score ${asScore(score)} out of 1`} />
+      {/* The tick sits at the score plus the switching margin: the bar a rival
+          target has to clear before AFRI-EDGE will move the work. The engine
+          applies that policy; the dashboard only draws where it falls. */}
+      <Meter
+        value={score}
+        mark={score + SWITCHING_MARGIN}
+        label={`Routing score ${asScore(score)} out of 1`}
+      />
 
       <p className={styles.meterFoot}>
         <span>0</span>
-        {/* The switching margin is the anti-flapping policy from §9, shown so
-            it is visible rather than claimed. Displayed only — never applied. */}
-        <span>switching margin {SWITCHING_MARGIN.toFixed(2)}</span>
+        <span className={styles.margin}>
+          <span className={styles.marginTick} aria-hidden="true" />
+          switching margin {SWITCHING_MARGIN.toFixed(2)}
+        </span>
         <span>1</span>
+      </p>
+
+      {/* The card's lower half was empty. What the number is made of is worth
+          more there than whitespace — and §9 names the factors, so this is
+          description, not a claim about weights. */}
+      <p className={styles.scoreNote}>
+        Weighted across latency, available resources, network quality and
+        reliability, less cost.
       </p>
     </article>
   )

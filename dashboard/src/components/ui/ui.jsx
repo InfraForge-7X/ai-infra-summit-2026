@@ -88,9 +88,14 @@ export function Tag({ kind }) {
  * @param {boolean} [props.thin]   Thin variant for environment CPU / RAM bars
  * @param {string} [props.color]   Defaults to the live accent
  * @param {string} props.label     Accessible name
+ * @param {number} [props.mark]    0–1. Draws a tick on the track — used for the
+ *   switching margin, which is the design spec's one non-negotiable detail:
+ *   it turns "we have anti-flapping" into something on screen. The engine
+ *   applies the policy; this only draws where it sits.
  */
-export function Meter({ value, thin = false, color, label }) {
+export function Meter({ value, thin = false, color, label, mark }) {
   const pct = Math.max(0, Math.min(1, value)) * 100
+  const markPct = mark === undefined ? null : Math.max(0, Math.min(1, mark)) * 100
   return (
     <div
       className={`${styles.track} ${thin ? styles.trackThin : ''}`}
@@ -101,6 +106,9 @@ export function Meter({ value, thin = false, color, label }) {
       aria-valuemax={100}
     >
       <div className={styles.fill} style={{ inlineSize: `${pct}%`, '--fill-color': color }} />
+      {markPct === null ? null : (
+        <span className={styles.mark} style={{ insetInlineStart: `${markPct}%` }} aria-hidden="true" />
+      )}
     </div>
   )
 }

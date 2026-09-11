@@ -5,10 +5,17 @@
   align-items: stretch;
 }
 
+@keyframes reroute {
+  from {
+    background-color: var(--accent-wash);
+  }
+}
+
 .card,
 .targetCard {
   display: flex;
   flex-direction: column;
+  animation: reroute 1s var(--ease);
   min-block-size: 271px;
   padding: var(--space-18) var(--space-27) var(--space-19);
   border-radius: var(--radius-2xl);
@@ -19,6 +26,7 @@
 /* ------------------------------------------------------------ target card */
 .targetCard {
   justify-content: space-between;
+  transition: background-color var(--dur-slow) ease;
   gap: var(--space-27);
   background-color: var(--accent);
   background-image: var(--accent-image);
@@ -104,8 +112,10 @@
   color: var(--color-charcoal);
 }
 
+/* The score and its meter are one reading. Pushing the meter to the bottom of
+   a 271px card left a gap between them and made the pair read as two things. */
 .score {
-  margin-block: var(--space-27) auto;
+  margin-block: var(--space-19) var(--space-16);
   color: var(--color-charcoal);
   font-size: var(--fs-4xl);
   font-weight: var(--fw-medium);
@@ -121,10 +131,33 @@
 .meterFoot {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-block-start: var(--space-10);
-  color: var(--color-faint);
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
+}
+
+/* The caption belongs to the tick above it, so it carries the same mark. */
+.margin {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  color: var(--color-charcoal);
+}
+
+.marginTick {
+  inline-size: 2px;
+  block-size: 10px;
+  border-radius: 1px;
+  background: var(--color-charcoal);
+}
+
+.scoreNote {
+  margin-block: var(--space-16) auto;
+  max-inline-size: 40ch;
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
 }
 
 .reasons {
@@ -144,6 +177,7 @@
 }
 
 .bullet {
+  transition: background-color var(--dur-slow) ease;
   flex: 0 0 auto;
   inline-size: 9px;
   block-size: 9px;

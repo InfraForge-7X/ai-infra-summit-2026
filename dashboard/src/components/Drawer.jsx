@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import styles from './Drawer.module.css'
 
@@ -21,8 +21,37 @@ import styles from './Drawer.module.css'
  * @param {React.ReactNode} props.children
  */
 export default function Drawer({ open, onClose, title, lede, children }) {
+  const [closing, setClosing] = useState(false)
   const panelRef = useRef(/** @type {HTMLDivElement | null} */ (null))
   const restoreTo = useRef(/** @type {Element | null} */ (null))
+  const exitTimer = useRef(/** @type {ReturnType<typeof setTimeout> | undefined} */ (undefined))
+
+  /*
+   * Closing runs the exit animation first, then unmounts when it finishes.
+   * Driven by the animation's own end event rather than a timer, so the two
+   * can never drift apart. All dismissals — Escape, scrim, the close button —
+   * go through here; a caller that flips `open` directly still closes, just
+   * without the exit, which is right when the close is a side effect of
+   * choosing something.
+   */
+  const finish = () => {
+    clearTimeout(exitTimer.current)
+    setClosing(false)
+    onClose()
+  }
+
+  const requestClose = () => {
+    setClosing(true)
+    // Safety net: if the exit animation never fires — animations disabled at
+    // the OS or browser level, an interrupted frame — the drawer must still
+    // close. Waiting on animationend alone would leave it stuck open.
+    clearTimeout(exitTimer.current)
+    exitTimer.current = setTimeout(finish, 400)
+  }
+
+  const onAnimationEnd = () => {
+    if (closing) finish()
+  }
 
   useEffect(() => {
     if (!open) return undefined
@@ -35,25 +64,32 @@ export default function Drawer({ open, onClose, title, lede, children }) {
 
     /** @param {KeyboardEvent} event */
     const onKeyDown = (event) => {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape') requestClose()
     }
     document.addEventListener('keydown', onKeyDown)
 
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = previousOverflow
+      clearTimeout(exitTimer.current)
       if (restoreTo.current instanceof HTMLElement) restoreTo.current.focus()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, onClose])
 
   if (!open) return null
 
   return (
     <>
-      <div className={styles.scrim} onClick={onClose} aria-hidden="true" />
+      <div
+        className={`${styles.scrim} ${closing ? styles.scrimOut : ''}`}
+        onClick={requestClose}
+        aria-hidden="true"
+      />
       <div
         ref={panelRef}
-        className={styles.panel}
+        className={`${styles.panel} ${closing ? styles.panelOut : ''}`}
+        onAnimationEnd={onAnimationEnd}
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -61,7 +97,7 @@ export default function Drawer({ open, onClose, title, lede, children }) {
       >
         <header className={styles.head}>
           <h2 className={styles.title}>{title}</h2>
-          <button type="button" className={styles.close} onClick={onClose} aria-label="Close">
+          <button type="button" className={styles.close} onClick={requestClose} aria-label="Close">
             ×
           </button>
         </header>

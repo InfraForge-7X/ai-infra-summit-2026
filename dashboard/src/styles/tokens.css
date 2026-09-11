@@ -114,6 +114,17 @@
   --drawer-width: 528px;   /* panel; content is 500px inside a 16px inset */
   --scrim: rgba(25, 28, 42, 0.34);
 
+  /* ------------------------------------------------------------- motion
+   * Three durations and one easing, so nothing picks its own number.
+   * fast  — confirmation that an input registered
+   * base  — something entering or leaving
+   * slow  — the accent changing target, the one moment the spec allows
+   */
+  --dur-fast: 120ms;
+  --dur-base: 220ms;
+  --dur-slow: 450ms;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+
   --bar-track-height: 5px;   /* environment CPU / RAM bars */
   --meter-height: 14px;      /* routing score meter */
 
@@ -146,7 +157,7 @@
   --accent-border-soft: rgba(156, 91, 6, 0.2);
   --accent-border-strong: rgba(156, 91, 6, 0.89);
   --accent-wash: rgba(156, 91, 6, 0.13);
-  --accent-image: url('/images/edge-bg.svg');
+  --accent-image: url('/images/brown-bg.svg');
 }
 
 [data-target='cloud'] {
