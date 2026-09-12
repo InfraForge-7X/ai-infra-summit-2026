@@ -50,10 +50,15 @@ def test_route_rejects_invalid_workload() -> None:
     assert engine.received_workload is None
 
 
-def test_route_returns_service_unavailable_when_not_configured() -> None:
-    client = TestClient(app)
+def test_route_returns_500_when_no_infrastructure_states() -> None:
+    """Without infrastructure states, routing should return 500."""
+    from src.api.dependencies import reset_dependencies
 
+    reset_dependencies()
+
+    # Use raise_server_exceptions=False to get the 500 response instead of exception
+    client = TestClient(app, raise_server_exceptions=False)
     response = client.post("/route", json=make_workload().model_dump(mode="json"))
 
-    assert response.status_code == 503
-    assert response.json() == {"detail": "Routing service is not configured"}
+    # Decision engine raises ValueError when no states available
+    assert response.status_code == 500

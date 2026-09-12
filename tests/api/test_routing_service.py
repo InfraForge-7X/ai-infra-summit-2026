@@ -10,7 +10,12 @@ from src.shared.enums import (
     Priority,
     WorkloadType,
 )
-from src.shared.models import InfrastructureState, RoutingDecision, WorkloadProfile
+from src.shared.models import (
+    InfrastructureState,
+    RoutingCandidate,
+    RoutingDecision,
+    WorkloadProfile,
+)
 
 from tests.api.fakes import FakeDecisionEngine, FakeInfrastructureStateProvider
 
@@ -73,6 +78,26 @@ def make_decision() -> RoutingDecision:
         target=ExecutionTarget.EDGE,
         score=0.82,
         reasons=["edge latency is acceptable", "GPU is available"],
+        ranked_candidates=[
+            RoutingCandidate(
+                target=ExecutionTarget.EDGE,
+                eligible=True,
+                score=0.82,
+                score_breakdown={"performance": 0.85, "cost": 0.75, "reliability": 0.85},
+            ),
+            RoutingCandidate(
+                target=ExecutionTarget.CLOUD,
+                eligible=True,
+                score=0.70,
+                score_breakdown={"performance": 0.65, "cost": 0.60, "reliability": 0.85},
+            ),
+            RoutingCandidate(
+                target=ExecutionTarget.LOCAL,
+                eligible=True,
+                score=0.65,
+                score_breakdown={"performance": 0.70, "cost": 0.90, "reliability": 0.35},
+            ),
+        ],
     )
 
 
