@@ -64,6 +64,15 @@ class _FixedMonitor(InfrastructureMonitor):
     def _collect_gpu_available(self) -> bool:
         return self.GPU_AVAILABLE
 
+    def _collect_target_cpu(self, target: ExecutionTarget) -> float:
+        return self.CPU_USAGE
+
+    def _collect_target_ram(self, target: ExecutionTarget) -> float:
+        return self.RAM_USAGE
+
+    def _collect_target_gpu_available(self, target: ExecutionTarget) -> bool:
+        return self.GPU_AVAILABLE
+
     def _collect_queue(self) -> int:
         return self.QUEUE
 
@@ -219,6 +228,93 @@ class TestInfrastructureMonitorTargetIdentity:
         result = monitor.collect(target)
         assert isinstance(result, InfrastructureState)
         assert result.target == target
+
+
+class TestInfrastructureMonitorTargetEnvironment:
+    """Tests target/environment separation between LOCAL and non-local targets (EDGE/CLOUD)."""
+
+    def test_local_uses_local_collectors(self) -> None:
+        """collect(ExecutionTarget.LOCAL) must call local host collectors."""
+        monitor = InfrastructureMonitor()
+        with (
+            patch.object(monitor, "_collect_cpu", return_value=55.0) as mock_cpu,
+            patch.object(monitor, "_collect_ram", return_value=70.0) as mock_ram,
+            patch.object(monitor, "_collect_gpu_available", return_value=True) as mock_gpu,
+            patch.object(monitor, "_collect_target_cpu") as mock_target_cpu,
+        ):
+            state = monitor.collect(ExecutionTarget.LOCAL)
+
+        assert state.target == ExecutionTarget.LOCAL
+        assert state.cpu_usage == 55.0
+        assert state.ram_usage == 70.0
+        assert state.gpu_available is True
+        mock_cpu.assert_called_once()
+        mock_ram.assert_called_once()
+        mock_gpu.assert_called_once()
+        mock_target_cpu.assert_not_called()
+
+    def test_edge_does_not_use_local_collectors(self) -> None:
+        """collect(ExecutionTarget.EDGE) must not call local psutil/nvidia-smi collectors."""
+        monitor = InfrastructureMonitor()
+        with (
+            patch.object(monitor, "_collect_cpu") as mock_cpu,
+            patch.object(monitor, "_collect_ram") as mock_ram,
+            patch.object(monitor, "_collect_gpu_available") as mock_gpu,
+        ):
+            state = monitor.collect(ExecutionTarget.EDGE)
+
+        assert state.target == ExecutionTarget.EDGE
+        assert state.cpu_usage == 0.0
+        assert state.ram_usage == 0.0
+        assert state.gpu_available is False
+        mock_cpu.assert_not_called()
+        mock_ram.assert_not_called()
+        mock_gpu.assert_not_called()
+
+    def test_cloud_does_not_use_local_collectors(self) -> None:
+        """collect(ExecutionTarget.CLOUD) must not call local psutil/nvidia-smi collectors."""
+        monitor = InfrastructureMonitor()
+        with (
+            patch.object(monitor, "_collect_cpu") as mock_cpu,
+            patch.object(monitor, "_collect_ram") as mock_ram,
+            patch.object(monitor, "_collect_gpu_available") as mock_gpu,
+        ):
+            state = monitor.collect(ExecutionTarget.CLOUD)
+
+        assert state.target == ExecutionTarget.CLOUD
+        assert state.cpu_usage == 0.0
+        assert state.ram_usage == 0.0
+        assert state.gpu_available is False
+        mock_cpu.assert_not_called()
+        mock_ram.assert_not_called()
+        mock_gpu.assert_not_called()
+
+    def test_target_specific_helper_overrides_provide_values(self) -> None:
+        """Target-specific helper overrides can provide custom values for non-local targets."""
+
+        class _CustomEdgeMonitor(InfrastructureMonitor):
+            def _collect_target_cpu(self, target: ExecutionTarget) -> float:
+                return 15.0 if target == ExecutionTarget.EDGE else 0.0
+
+            def _collect_target_ram(self, target: ExecutionTarget) -> float:
+                return 25.0 if target == ExecutionTarget.EDGE else 0.0
+
+            def _collect_target_gpu_available(self, target: ExecutionTarget) -> bool:
+                return True if target == ExecutionTarget.EDGE else False
+
+        monitor = _CustomEdgeMonitor()
+        edge_state = monitor.collect(ExecutionTarget.EDGE)
+
+        assert edge_state.target == ExecutionTarget.EDGE
+        assert edge_state.cpu_usage == 15.0
+        assert edge_state.ram_usage == 25.0
+        assert edge_state.gpu_available is True
+
+        cloud_state = monitor.collect(ExecutionTarget.CLOUD)
+        assert cloud_state.target == ExecutionTarget.CLOUD
+        assert cloud_state.cpu_usage == 0.0
+        assert cloud_state.ram_usage == 0.0
+        assert cloud_state.gpu_available is False
 
 
 # ---------------------------------------------------------------------------

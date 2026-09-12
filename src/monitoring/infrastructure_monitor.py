@@ -64,25 +64,61 @@ class InfrastructureMonitor:
 
         Args:
             target: The execution target identity to stamp on the snapshot.
-                    The target is preserved as-is; it does not change which
-                    host metrics are read in the MVP.
 
         Returns:
             InfrastructureState: Validated snapshot. All optional metrics
             (GPU, network) gracefully fall back to safe defaults when
             unavailable. Never raises.
         """
+        if target == ExecutionTarget.LOCAL:
+            cpu = self._collect_cpu()
+            ram = self._collect_ram()
+            gpu = self._collect_gpu_available()
+        else:
+            cpu = self._collect_target_cpu(target)
+            ram = self._collect_target_ram(target)
+            gpu = self._collect_target_gpu_available(target)
+
         return InfrastructureState(
             target=target,
-            cpu_usage=self._collect_cpu(),
-            gpu_available=self._collect_gpu_available(),
-            ram_usage=self._collect_ram(),
+            cpu_usage=cpu,
+            gpu_available=gpu,
+            ram_usage=ram,
             queue=self._collect_queue(),
             latency_ms=self._collect_latency_ms(),
             bandwidth_mbps=self._collect_bandwidth_mbps(),
             packet_loss=self._collect_packet_loss(),
             timestamp=self._collect_timestamp(),
         )
+
+    # ------------------------------------------------------------------
+    # Non-local target metric probes (defaults to unavailable sentinels)
+    # ------------------------------------------------------------------
+
+    def _collect_target_cpu(self, target: ExecutionTarget) -> float:
+        """Return CPU utilisation for a non-local execution target.
+
+        MVP stub — returns _UNAVAILABLE_FLOAT (0.0). Subclasses or target
+        probes can override to measure remote targets.
+        """
+        return _UNAVAILABLE_FLOAT
+
+    def _collect_target_ram(self, target: ExecutionTarget) -> float:
+        """Return RAM utilisation for a non-local execution target.
+
+        MVP stub — returns _UNAVAILABLE_FLOAT (0.0). Subclasses or target
+        probes can override to measure remote targets.
+        """
+        return _UNAVAILABLE_FLOAT
+
+    def _collect_target_gpu_available(self, target: ExecutionTarget) -> bool:
+        """Probe GPU availability for a non-local execution target.
+
+        MVP stub — returns False. Subclasses or target probes can override
+        to measure remote targets.
+        """
+        return False
+
 
     # ------------------------------------------------------------------
     # Reliable host metrics — always collected
