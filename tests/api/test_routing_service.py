@@ -129,6 +129,16 @@ def test_route_forwards_workload_and_states_to_decision_engine() -> None:
     assert list(engine.received_states) == states
 
 
+def test_route_forwards_current_target_to_decision_engine() -> None:
+    provider = FakeInfrastructureStateProvider(make_states())
+    engine = FakeDecisionEngine(make_decision())
+    service = RoutingService(provider, engine)
+
+    service.route(make_workload(), current_target=ExecutionTarget.EDGE)
+
+    assert engine.received_current_target == ExecutionTarget.EDGE
+
+
 def test_route_returns_decision_engine_result_unchanged() -> None:
     decision = make_decision()
     provider = FakeInfrastructureStateProvider(make_states())
