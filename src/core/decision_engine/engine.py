@@ -8,6 +8,7 @@ Pipeline: Hard Constraints → Eligibility → Scoring → Ranking → Selection
 """
 
 from collections.abc import Sequence
+from datetime import datetime, timezone
 
 from src.shared import (
     ExecutionTarget,
@@ -51,24 +52,14 @@ class DecisionEngine:
         scoring_engine: ScoringEngine | None = None,
         anti_flapping_guard: AntiFlappingGuard | None = None,
     ) -> None:
-        """Initialize the Decision Engine with optional dependencies.
-
-        Args:
-            config: Engine configuration. Uses defaults if not provided.
-            constraint_evaluator: Hard constraint evaluator.
-            scoring_engine: Scoring engine.
-            anti_flapping_guard: Anti-flapping guard.
-        """
+        """Initialize the Decision Engine with optional dependencies."""
         self._config = config or DecisionEngineConfig()
-
         self._constraint_evaluator = constraint_evaluator or HardConstraintEvaluator(
             thresholds=self._config.constraint_thresholds
         )
-
         self._scoring_engine = scoring_engine or ScoringEngine(
             weights=self._config.scoring_weights
         )
-
         self._anti_flapping_guard = anti_flapping_guard or AntiFlappingGuard(
             switching_threshold=self._config.switching_threshold
         )
@@ -84,35 +75,13 @@ class DecisionEngine:
         infrastructure_states: Sequence[InfrastructureState],
         current_target: ExecutionTarget | None = None,
     ) -> RoutingDecision:
-        """Make a routing decision for a workload.
-
-        This is the main entry point implementing the DecisionEngineProtocol.
-
-        Args:
-            workload: The workload to route.
-            infrastructure_states: Current state of each execution target.
-            current_target: Optional current target for anti-flapping.
-
-        Returns:
-            A RoutingDecision with the selected target, score, reasons,
-            and full ranked candidate list.
-
-        Raises:
-            ValueError: If infrastructure_states is empty.
-        """
+        """Make a routing decision for a workload."""
         if not infrastructure_states:
             raise ValueError("At least one infrastructure state is required")
 
-        # Build candidate list with eligibility and scores
         candidates = self._evaluate_candidates(workload, infrastructure_states)
-
-        # Sort by score (highest first), ineligible last
         ranked_candidates = self._rank_candidates(candidates)
-
-        # Select target with anti-flapping consideration
         selected = self._select_target(ranked_candidates, current_target)
-
-        # Generate explainable reasons
         reasons = self._generate_reasons(workload, selected, ranked_candidates)
 
         return RoutingDecision(
@@ -128,25 +97,36 @@ class DecisionEngine:
         workload: WorkloadProfile,
         states: Sequence[InfrastructureState],
     ) -> list[RoutingCandidate]:
-        """Evaluate each target for eligibility and score.
-
-        Args:
-            workload: The workload requirements.
-            states: Infrastructure states to evaluate.
-
-        Returns:
-            List of RoutingCandidate objects.
-        """
+        """Evaluate each target for freshness, eligibility, and score."""
         candidates: list[RoutingCandidate] = []
+        now = datetime.now(timezone.utc)
 
         for state in states:
-            # Evaluate hard constraints
+            timestamp = state.timestamp
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.replace(tzinfo=timezone.utc)
+
+            age_seconds = max(0.0, (now - timestamp).total_seconds())
+            if age_seconds > self._config.max_state_age_seconds:
+                candidates.append(
+                    RoutingCandidate(
+                        target=state.target,
+                        eligible=False,
+                        disqualification_reasons=[
+                            f"Infrastructure state is stale ({age_seconds:.1f}s old; "
+                            f"maximum {self._config.max_state_age_seconds:.1f}s)"
+                        ],
+                        score=None,
+                        score_breakdown={},
+                    )
+                )
+                continue
+
             eligible, disqualification_reasons = self._constraint_evaluator.evaluate(
                 workload, state
             )
 
             if eligible:
-                # Compute score for eligible targets
                 score, score_breakdown = self._scoring_engine.score(workload, state)
                 candidate = RoutingCandidate(
                     target=state.target,
@@ -156,7 +136,6 @@ class DecisionEngine:
                     score_breakdown=score_breakdown,
                 )
             else:
-                # Ineligible targets have no score
                 candidate = RoutingCandidate(
                     target=state.target,
                     eligible=False,
@@ -169,24 +148,12 @@ class DecisionEngine:
 
         return candidates
 
-    def _rank_candidates(
-        self,
-        candidates: list[RoutingCandidate],
-    ) -> list[RoutingCandidate]:
-        """Rank candidates by score, with ineligible targets last.
+    def _rank_candidates(self, candidates: list[RoutingCandidate]) -> list[RoutingCandidate]:
+        """Rank eligible candidates by score, with ineligible targets last."""
 
-        Args:
-            candidates: Unordered list of candidates.
-
-        Returns:
-            Candidates sorted by score (highest first), ineligible last.
-        """
-
-        def sort_key(c: RoutingCandidate) -> tuple[int, float]:
-            # Eligible first (0), then ineligible (1)
-            # Within eligible, sort by score descending (negate for descending)
-            eligibility_rank = 0 if c.eligible else 1
-            score_rank = -(c.score if c.score is not None else 0.0)
+        def sort_key(candidate: RoutingCandidate) -> tuple[int, float]:
+            eligibility_rank = 0 if candidate.eligible else 1
+            score_rank = -(candidate.score if candidate.score is not None else 0.0)
             return (eligibility_rank, score_rank)
 
         return sorted(candidates, key=sort_key)
@@ -196,19 +163,7 @@ class DecisionEngine:
         ranked_candidates: list[RoutingCandidate],
         current_target: ExecutionTarget | None,
     ) -> RoutingCandidate:
-        """Select the final target with anti-flapping.
-
-        Args:
-            ranked_candidates: Candidates sorted by score.
-            current_target: Optional current target.
-
-        Returns:
-            The selected candidate.
-
-        Raises:
-            NoEligibleTargetError: If no eligible candidates exist.
-        """
-        # Find best eligible candidate
+        """Select an eligible target with anti-flapping."""
         best_eligible: RoutingCandidate | None = None
         current_candidate: RoutingCandidate | None = None
 
@@ -219,16 +174,11 @@ class DecisionEngine:
                 current_candidate = candidate
 
         if best_eligible is None:
-            # No eligible targets - select least-bad option
-            # Return first candidate (which has fewest disqualifications)
-            if ranked_candidates:
-                return ranked_candidates[0]
-            raise NoEligibleTargetError("No targets available for routing")
+            raise NoEligibleTargetError("No eligible execution target is available")
 
-        # Apply anti-flapping logic
         current_score = (
             current_candidate.score
-            if current_candidate is not None and current_candidate.score is not None
+            if current_candidate is not None and current_candidate.eligible
             else None
         )
 
@@ -237,7 +187,6 @@ class DecisionEngine:
         ):
             return best_eligible
 
-        # Stay on current target if it exists and is eligible
         if current_candidate is not None and current_candidate.eligible:
             return current_candidate
 
@@ -249,42 +198,22 @@ class DecisionEngine:
         selected: RoutingCandidate,
         ranked_candidates: list[RoutingCandidate],
     ) -> list[str]:
-        """Generate human-readable reasons for the decision.
-
-        Args:
-            workload: The workload that was routed.
-            selected: The selected candidate.
-            ranked_candidates: All evaluated candidates.
-
-        Returns:
-            List of reason strings explaining the decision.
-        """
+        """Generate human-readable reasons for the decision."""
         reasons: list[str] = []
-
-        if not selected.eligible:
-            reasons.append(
-                f"WARNING: Selected {selected.target.value} despite being ineligible "
-                f"(no eligible targets available)"
-            )
-            if selected.disqualification_reasons:
-                reasons.append(f"Issues: {', '.join(selected.disqualification_reasons)}")
-            return reasons
-
-        # Primary selection reason
         target_name = selected.target.value.upper()
         reasons.append(f"Selected {target_name} with score {selected.score:.2f}")
 
-        # Score breakdown explanation
         if selected.score_breakdown:
             top_scores = sorted(
-                selected.score_breakdown.items(), key=lambda x: x[1], reverse=True
+                selected.score_breakdown.items(), key=lambda item: item[1], reverse=True
             )[:3]
             score_parts = [f"{name}: {score:.2f}" for name, score in top_scores]
             reasons.append(f"Top factors: {', '.join(score_parts)}")
 
-        # Comparison with other eligible candidates
         other_eligible = [
-            c for c in ranked_candidates if c.eligible and c.target != selected.target
+            candidate
+            for candidate in ranked_candidates
+            if candidate.eligible and candidate.target != selected.target
         ]
         if other_eligible:
             runner_up = other_eligible[0]
@@ -294,10 +223,9 @@ class DecisionEngine:
                     f"Outscored {runner_up.target.value.upper()} by {diff:.2f}"
                 )
 
-        # Note excluded targets
-        ineligible = [c for c in ranked_candidates if not c.eligible]
+        ineligible = [candidate for candidate in ranked_candidates if not candidate.eligible]
         if ineligible:
-            excluded_names = [c.target.value.upper() for c in ineligible]
-            reasons.append(f"Excluded: {', '.join(excluded_names)} (constraint violations)")
+            excluded_names = [candidate.target.value.upper() for candidate in ineligible]
+            reasons.append(f"Excluded: {', '.join(excluded_names)} (constraints or stale state)")
 
         return reasons
