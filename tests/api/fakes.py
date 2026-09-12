@@ -29,12 +29,15 @@ class FakeDecisionEngine(DecisionEngine):
         self.decision = decision
         self.received_workload: WorkloadProfile | None = None
         self.received_states: Sequence[InfrastructureState] = []
+        self.received_current_target: ExecutionTarget | None = None
 
     def decide(
         self,
         workload: WorkloadProfile,
         infrastructure_states: Sequence[InfrastructureState],
+        current_target: ExecutionTarget | None = None,
     ) -> RoutingDecision:
         self.received_workload = workload
         self.received_states = infrastructure_states
+        self.received_current_target = current_target
         return self.decision
