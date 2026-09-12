@@ -18,7 +18,11 @@ class RoutingService:
         self._state_provider = state_provider
         self._decision_engine = decision_engine
 
-    def route(self, workload: WorkloadProfile) -> RoutingDecision:
+    def route(
+        self,
+        workload: WorkloadProfile,
+        current_target: ExecutionTarget | None = None,
+    ) -> RoutingDecision:
         """Retrieve current infrastructure state and delegate the decision."""
         targets: Sequence[ExecutionTarget] = (
             ExecutionTarget.LOCAL,
@@ -31,4 +35,5 @@ class RoutingService:
         return self._decision_engine.decide(
             workload=workload,
             infrastructure_states=infrastructure_states,
+            current_target=current_target,
         )
