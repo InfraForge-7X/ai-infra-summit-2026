@@ -24,6 +24,7 @@ class DecisionEngine(Protocol):
         self,
         workload: WorkloadProfile,
         infrastructure_states: Sequence[InfrastructureState],
+        current_target: ExecutionTarget | None = None,
     ) -> RoutingDecision:
-        """Return an explainable routing decision."""
+        """Return an explainable routing decision with optional anti-flapping context."""
         ...
