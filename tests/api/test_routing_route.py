@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from src.api.dependencies import get_routing_service
 from src.api.services.routing import RoutingService
 from src.main import app
+from src.shared.enums import ExecutionTarget
 
 from tests.api.fakes import FakeDecisionEngine, FakeInfrastructureStateProvider
 from tests.api.test_routing_service import make_decision, make_states, make_workload
@@ -26,6 +27,25 @@ def test_route_returns_routing_decision_from_injected_service() -> None:
     assert response.json() == make_decision().model_dump(mode="json")
     assert engine.received_workload == make_workload()
     assert list(engine.received_states) == provider.states
+
+
+def test_route_forwards_current_target() -> None:
+    provider = FakeInfrastructureStateProvider(make_states())
+    engine = FakeDecisionEngine(make_decision())
+    service = RoutingService(provider, engine)
+
+    app.dependency_overrides[get_routing_service] = lambda: service
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/route?current_target=edge",
+            json=make_workload().model_dump(mode="json"),
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert engine.received_current_target == ExecutionTarget.EDGE
 
 
 def test_route_rejects_invalid_workload() -> None:
@@ -56,9 +76,7 @@ def test_route_returns_500_when_no_infrastructure_states() -> None:
 
     reset_dependencies()
 
-    # Use raise_server_exceptions=False to get the 500 response instead of exception
     client = TestClient(app, raise_server_exceptions=False)
     response = client.post("/route", json=make_workload().model_dump(mode="json"))
 
-    # Decision engine raises ValueError when no states available
     assert response.status_code == 500
