@@ -58,7 +58,8 @@ class DecisionEngine:
             thresholds=self._config.constraint_thresholds
         )
         self._scoring_engine = scoring_engine or ScoringEngine(
-            weights=self._config.scoring_weights
+            weights=self._config.scoring_weights,
+            parameters=self._config.scoring_parameters,
         )
         self._anti_flapping_guard = anti_flapping_guard or AntiFlappingGuard(
             switching_threshold=self._config.switching_threshold
