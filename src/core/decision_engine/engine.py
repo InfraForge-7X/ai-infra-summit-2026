@@ -77,7 +77,7 @@ class DecisionEngine:
     ) -> RoutingDecision:
         """Make a routing decision for a workload."""
         if not infrastructure_states:
-            raise ValueError("At least one infrastructure state is required")
+            raise NoEligibleTargetError("No infrastructure state is available")
 
         candidates = self._evaluate_candidates(workload, infrastructure_states)
         ranked_candidates = self._rank_candidates(candidates)
@@ -148,7 +148,10 @@ class DecisionEngine:
 
         return candidates
 
-    def _rank_candidates(self, candidates: list[RoutingCandidate]) -> list[RoutingCandidate]:
+    def _rank_candidates(
+        self,
+        candidates: list[RoutingCandidate],
+    ) -> list[RoutingCandidate]:
         """Rank eligible candidates by score, with ineligible targets last."""
 
         def sort_key(candidate: RoutingCandidate) -> tuple[int, float]:
@@ -174,7 +177,9 @@ class DecisionEngine:
                 current_candidate = candidate
 
         if best_eligible is None:
-            raise NoEligibleTargetError("No eligible execution target is available")
+            raise NoEligibleTargetError(
+                "No eligible execution target is available"
+            )
 
         current_score = (
             current_candidate.score
@@ -183,7 +188,9 @@ class DecisionEngine:
         )
 
         if self._anti_flapping_guard.should_switch(
-            current_target, current_score, best_eligible
+            current_target,
+            current_score,
+            best_eligible,
         ):
             return best_eligible
 
@@ -201,13 +208,19 @@ class DecisionEngine:
         """Generate human-readable reasons for the decision."""
         reasons: list[str] = []
         target_name = selected.target.value.upper()
-        reasons.append(f"Selected {target_name} with score {selected.score:.2f}")
+        reasons.append(
+            f"Selected {target_name} with score {selected.score:.2f}"
+        )
 
         if selected.score_breakdown:
             top_scores = sorted(
-                selected.score_breakdown.items(), key=lambda item: item[1], reverse=True
+                selected.score_breakdown.items(),
+                key=lambda item: item[1],
+                reverse=True,
             )[:3]
-            score_parts = [f"{name}: {score:.2f}" for name, score in top_scores]
+            score_parts = [
+                f"{name}: {score:.2f}" for name, score in top_scores
+            ]
             reasons.append(f"Top factors: {', '.join(score_parts)}")
 
         other_eligible = [
@@ -223,9 +236,18 @@ class DecisionEngine:
                     f"Outscored {runner_up.target.value.upper()} by {diff:.2f}"
                 )
 
-        ineligible = [candidate for candidate in ranked_candidates if not candidate.eligible]
+        ineligible = [
+            candidate
+            for candidate in ranked_candidates
+            if not candidate.eligible
+        ]
         if ineligible:
-            excluded_names = [candidate.target.value.upper() for candidate in ineligible]
-            reasons.append(f"Excluded: {', '.join(excluded_names)} (constraints or stale state)")
+            excluded_names = [
+                candidate.target.value.upper() for candidate in ineligible
+            ]
+            reasons.append(
+                f"Excluded: {', '.join(excluded_names)} "
+                "(constraints or stale state)"
+            )
 
         return reasons
