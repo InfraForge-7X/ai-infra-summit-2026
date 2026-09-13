@@ -20,10 +20,28 @@ from src.shared import (
     InfrastructureState,
     Priority,
     PrivacyLevel,
+    RoutingCandidate,
     RoutingDecision,
     WorkloadProfile,
     WorkloadType,
 )
+
+
+def make_candidate(
+    target: ExecutionTarget = ExecutionTarget.EDGE,
+    eligible: bool = True,
+    score: float | None = 0.85,
+    score_breakdown: dict[str, float] | None = None,
+    disqualification_reasons: list[str] | None = None,
+) -> RoutingCandidate:
+    """Helper to create a RoutingCandidate for tests."""
+    return RoutingCandidate(
+        target=target,
+        eligible=eligible,
+        score=score if eligible else None,
+        score_breakdown=score_breakdown or ({"performance": 0.9, "cost": 0.8} if eligible else {}),
+        disqualification_reasons=disqualification_reasons or [],
+    )
 
 
 class TestWorkloadProfile:
@@ -369,21 +387,78 @@ class TestInfrastructureState:
         assert "timestamp" in str(exc_info.value)
 
 
+class TestRoutingCandidate:
+    """Tests for RoutingCandidate model."""
+
+    def test_valid_eligible_candidate(self) -> None:
+        """Test creating a valid eligible RoutingCandidate."""
+        candidate = RoutingCandidate(
+            target=ExecutionTarget.EDGE,
+            eligible=True,
+            score=0.85,
+            score_breakdown={"performance": 0.9, "cost": 0.7, "reliability": 0.9},
+        )
+        assert candidate.target == ExecutionTarget.EDGE
+        assert candidate.eligible is True
+        assert candidate.score == 0.85
+        assert candidate.score_breakdown["performance"] == 0.9
+        assert candidate.disqualification_reasons == []
+
+    def test_valid_ineligible_candidate(self) -> None:
+        """Test creating a valid ineligible RoutingCandidate."""
+        candidate = RoutingCandidate(
+            target=ExecutionTarget.LOCAL,
+            eligible=False,
+            disqualification_reasons=["GPU required but not available"],
+        )
+        assert candidate.target == ExecutionTarget.LOCAL
+        assert candidate.eligible is False
+        assert candidate.score is None
+        assert candidate.score_breakdown == {}
+        assert len(candidate.disqualification_reasons) == 1
+
+    def test_score_breakdown_values_validated(self) -> None:
+        """Test that score breakdown values must be 0-1."""
+        with pytest.raises(ValidationError) as exc_info:
+            RoutingCandidate(
+                target=ExecutionTarget.EDGE,
+                eligible=True,
+                score=0.8,
+                score_breakdown={"performance": 1.5},  # Invalid
+            )
+        assert "score_breakdown" in str(exc_info.value)
+
+    def test_score_none_for_ineligible(self) -> None:
+        """Test that ineligible candidates can have None score."""
+        candidate = RoutingCandidate(
+            target=ExecutionTarget.LOCAL,
+            eligible=False,
+            score=None,
+        )
+        assert candidate.score is None
+
+
 class TestRoutingDecision:
     """Tests for RoutingDecision model."""
 
     def test_valid_routing_decision(self) -> None:
         """Test creating a valid RoutingDecision."""
+        candidates = [
+            make_candidate(ExecutionTarget.EDGE, eligible=True, score=0.85),
+            make_candidate(ExecutionTarget.LOCAL, eligible=False),
+        ]
         decision = RoutingDecision(
             task_id="task-001",
             target=ExecutionTarget.EDGE,
             score=0.85,
             reasons=["Low latency", "GPU available", "Sufficient bandwidth"],
+            ranked_candidates=candidates,
         )
         assert decision.task_id == "task-001"
         assert decision.target == ExecutionTarget.EDGE
         assert decision.score == 0.85
         assert len(decision.reasons) == 3
+        assert len(decision.ranked_candidates) == 2
 
     def test_valid_routing_decision_single_reason(self) -> None:
         """Test creating RoutingDecision with single reason."""
@@ -392,6 +467,7 @@ class TestRoutingDecision:
             target=ExecutionTarget.CLOUD,
             score=0.95,
             reasons=["Only eligible target"],
+            ranked_candidates=[make_candidate(ExecutionTarget.CLOUD, score=0.95)],
         )
         assert len(decision.reasons) == 1
 
@@ -402,12 +478,14 @@ class TestRoutingDecision:
             target=ExecutionTarget.LOCAL,
             score=0.0,
             reasons=["Minimum score"],
+            ranked_candidates=[make_candidate(ExecutionTarget.LOCAL, score=0.0)],
         )
         decision_max = RoutingDecision(
             task_id="task-002",
             target=ExecutionTarget.CLOUD,
             score=1.0,
             reasons=["Maximum score"],
+            ranked_candidates=[make_candidate(ExecutionTarget.CLOUD, score=1.0)],
         )
         assert decision_min.score == 0.0
         assert decision_max.score == 1.0
@@ -420,6 +498,7 @@ class TestRoutingDecision:
                 target=ExecutionTarget.EDGE,
                 score=1.5,
                 reasons=["Invalid score"],
+                ranked_candidates=[make_candidate()],
             )
         assert "score" in str(exc_info.value)
 
@@ -431,6 +510,7 @@ class TestRoutingDecision:
                 target=ExecutionTarget.EDGE,
                 score=-0.5,
                 reasons=["Invalid score"],
+                ranked_candidates=[make_candidate()],
             )
         assert "score" in str(exc_info.value)
 
@@ -442,6 +522,7 @@ class TestRoutingDecision:
                 target=ExecutionTarget.EDGE,
                 score=0.5,
                 reasons=[],
+                ranked_candidates=[make_candidate()],
             )
         assert "reasons" in str(exc_info.value)
 
@@ -453,6 +534,7 @@ class TestRoutingDecision:
                 target=ExecutionTarget.EDGE,
                 score=0.5,
                 reasons=["Valid reason", ""],
+                ranked_candidates=[make_candidate()],
             )
         assert "reasons" in str(exc_info.value)
 
@@ -464,6 +546,7 @@ class TestRoutingDecision:
                 target=ExecutionTarget.EDGE,
                 score=0.5,
                 reasons=["Valid reason", "   "],
+                ranked_candidates=[make_candidate()],
             )
         assert "reasons" in str(exc_info.value)
 
@@ -474,8 +557,32 @@ class TestRoutingDecision:
                 target=ExecutionTarget.EDGE,
                 score=0.5,
                 reasons=["A reason"],
+                ranked_candidates=[make_candidate()],
             )
         assert "task_id" in str(exc_info.value)
+
+    def test_empty_ranked_candidates_rejected(self) -> None:
+        """Test that empty ranked_candidates list is rejected."""
+        with pytest.raises(ValidationError) as exc_info:
+            RoutingDecision(
+                task_id="task-001",
+                target=ExecutionTarget.EDGE,
+                score=0.5,
+                reasons=["A reason"],
+                ranked_candidates=[],
+            )
+        assert "ranked_candidates" in str(exc_info.value)
+
+    def test_missing_ranked_candidates_rejected(self) -> None:
+        """Test that missing ranked_candidates is rejected."""
+        with pytest.raises(ValidationError) as exc_info:
+            RoutingDecision(
+                task_id="task-001",
+                target=ExecutionTarget.EDGE,
+                score=0.5,
+                reasons=["A reason"],
+            )
+        assert "ranked_candidates" in str(exc_info.value)
 
 
 class TestExecutionResult:
