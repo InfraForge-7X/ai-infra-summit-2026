@@ -70,8 +70,8 @@ def test_route_rejects_invalid_workload() -> None:
     assert engine.received_workload is None
 
 
-def test_route_returns_500_when_no_infrastructure_states() -> None:
-    """Without infrastructure states, routing should return 500."""
+def test_route_returns_503_when_no_infrastructure_states() -> None:
+    """Without infrastructure states, routing should return 503."""
     from src.api.dependencies import reset_dependencies
 
     reset_dependencies()
@@ -79,4 +79,4 @@ def test_route_returns_500_when_no_infrastructure_states() -> None:
     client = TestClient(app, raise_server_exceptions=False)
     response = client.post("/route", json=make_workload().model_dump(mode="json"))
 
-    assert response.status_code == 500
+    assert response.status_code == 503
