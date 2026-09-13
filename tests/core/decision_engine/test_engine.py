@@ -156,7 +156,7 @@ class TestAntiFlapping:
 class TestDegradedScenarios:
     def test_empty_states_raises_error(self, base_workload: WorkloadProfile) -> None:
         engine = DecisionEngine()
-        with pytest.raises(ValueError, match="At least one"):
+        with pytest.raises(NoEligibleTargetError, match="No infrastructure state"):
             engine.decide(base_workload, [])
 
     def test_all_ineligible_raises_no_eligible_target(self, base_workload: WorkloadProfile) -> None:
@@ -227,3 +227,4 @@ class TestDeterminism:
         decision2 = DecisionEngine(config=config).decide(base_workload, all_healthy_states)
         assert decision1.target == decision2.target
         assert decision1.score == decision2.score
+        assert decision1.reasons == decision2.reasons
