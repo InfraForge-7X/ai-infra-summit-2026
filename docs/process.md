@@ -128,18 +128,63 @@ platform — this is a hard guardrail, not a soft preference.
 
 ---
 
-## 8. Current Status (verified against GitHub, not just Blueprint plan)
+## 8. Current Status (verified against GitHub — updated for Task #11)
 
-- Validated on `main`: FastAPI skeleton, health endpoint, tests, Python configuration,
-  Dockerfile, Docker Compose, environment template, repo documentation structure.
-- Routing API scaffold on `feat/routing-decision-api` (**Draft PR #12**) is **intentionally
-  non-functional** pending shared contracts (#2) and Decision Engine (#6).
-- **Task #2 — Shared Data Models:** In progress. PR #13 open on `feat/shared-data-models`,
-  currently under review.
-- **Task #6 — Decision Engine:** Not started. Still blocked on Tasks #2, #3, and #5 per the
-  dependency chain in Section 2.
+Core pipeline is now substantially implemented. Verified against merged PRs, not the
+original Blueprint plan:
+
+| Task | Status | PR |
+|---|---|---|
+| #1 — Project Structure | ✅ Merged | — |
+| #2 — Shared Data Models | ✅ Merged | #13 |
+| #3 — Workload Profiler | ✅ Merged (Approved) | #18 |
+| #4 — Infrastructure Monitor | ✅ Merged (Approved) | #20 |
+| #5 — Metrics & State Layer | ✅ Merged (Approved) | #17 |
+| #6 — Decision Engine | ✅ Merged | #21 |
+| #7 — Routing API | ✅ Merged — full routing integration layer, no longer just a scaffold | #19 |
+| #9 — Documentation Foundation | ✅ Merged | #14 |
+| #8 — Dashboard | 🟡 Open, not yet merged | #16 |
+| #11 — End-to-End AFRI-EDGE Integration | 🔴 Open, current priority | Issue #22 |
+| #12 — Routing Benchmark & Evidence | 🔴 Open, not started | Issue #23 |
+
+Earlier scaffold/draft PRs (#12, #15) were superseded by the full implementations above and
+are now closed.
 
 ---
 
-*This document is based on Blueprint v1.1 and the verified repository state at the time of
-this update. Status and implementation claims are not inferred beyond GitHub evidence.*
+## 9. Remaining Work / Limitations (current, as of Task #11)
+
+**Task #11 — End-to-End AFRI-EDGE Integration** (Issue #22, Owner: Tsadok)
+- Goal: connect the completed components into one working end-to-end flow — AI request →
+  workload profiling → infrastructure state → routing decision → target adapter →
+  result/observability output.
+- Support: Jeremiah (Dashboard integration), Muhammad Anis (Infrastructure State / adapter
+  support), Hoàng (Decision Engine integration support).
+
+**Task #12 — Routing Benchmark & Evidence** (Issue #23, Owner: Hoàng)
+- Goal: produce controlled benchmark evidence that AFRI-EDGE routing outperforms a static
+  routing strategy under changing infrastructure conditions.
+- Explicitly scoped as **evaluation/evidence work, not a redesign of the Decision Engine.**
+- Support: Muhammad Anis (infrastructure-state scenarios and measurements), Tsadok
+  (integration and benchmark execution).
+
+**Task #8 — Dashboard** (PR #16)
+- Still open at time of writing; not yet merged into `main`.
+
+---
+
+## Open Questions / To Confirm With Team
+
+- [x] Current merge status of all tasks — confirmed via GitHub: #1\u2013#7 and #9 merged, #8
+      open (PR #16), #11 and #12 open as new integration/benchmark issues
+- [x] Whether Part 1 and Part 2 should merge or stay split — confirmed with Tsadok: **keep
+      as two separate documents under `/docs/`**
+- [ ] Confirm whether the `RoutingDecision` contract ended up including candidate
+      ranking/comparison (from the earlier team discussion) — not yet verified against the
+      actual merged code
+- [ ] Do one final GitHub status check immediately before pushing this update, since #8, #11,
+      and #12 are all actively in progress and could change status quickly
+
+---
+*Sourced entirely from Blueprint v1.1, Sections 22–29. No status, results, or team
+decisions beyond what's stated in the Blueprint have been assumed.*
