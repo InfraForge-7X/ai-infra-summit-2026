@@ -167,21 +167,25 @@ Blueprint → GitHub Issue → Owner → Feature Branch → Development
 - No secrets committed to GitHub — `.env` locally, `.env.example` for the template.
 - `main` stays stable; all implementation happens on feature branches.
 
-**Current implementation baseline (as of this Blueprint):**
+**Current implementation baseline (updated — verified against merged PRs):**
 - Validated on `main`: FastAPI skeleton, health endpoint, tests, Python configuration,
   Dockerfile, Docker Compose, environment template, repo documentation structure.
-- The Routing API has an **intentionally non-functional** integration scaffold on
-  `feat/routing-decision-api` (**Draft PR #12**), pending the shared contracts and Decision
-  Engine.
-- Shared Data Models (Task #2) are in progress: **PR #13** open on `feat/shared-data-models`,
-  currently under review.
+- **Merged and complete:** Shared Data Models (#2, PR #13), Workload Profiler (#3, PR #18),
+  Infrastructure Monitor (#4, PR #20), Metrics & State Layer (#5, PR #17), Decision Engine
+  (#6, PR #21), Routing API (#7, PR #19 — full routing integration layer, no longer a
+  scaffold).
+- **Still open:** Dashboard (#8, PR #16 not yet merged).
+- **New work opened for integration phase:** Task #11 — End-to-End AFRI-EDGE Integration
+  (connecting all completed components into one working flow) and Task #12 — Routing
+  Benchmark & Evidence (controlled benchmark comparing AFRI-EDGE against static routing).
+  See Part 2 (process.md) for full ownership and scope of these.
 
 ---
 
 ## 10. Demo Direction
 
 Planned demo sequence:
-1. Run the static baseline (fixed destination)
+1. Run the static baseline (fixed/fixed destination)
 2. AFRI-EDGE selects the best target under normal conditions
 3. Trigger Edge degradation → observe explainable rerouting
 4. (Optional) Demonstrate SiMa.ai Edge execution
@@ -194,6 +198,13 @@ comparative claims must come from controlled experiments run under identical sce
 
 ---
 
-*This document reflects only what is defined in Blueprint v1.1 and the verified repository
-state at the time of this update. No implementation results beyond that state have been
-assumed or invented.*
+## Open Questions / To Confirm With Team
+
+- [ ] Current status of Task #2 (Shared Data Models) and Task #6 (Decision Engine) —
+      needed before this doc can describe *implemented* (vs. planned) behavior in detail
+- [ ] Preferred location for this file in the repo (`/docs/README.md` vs root `README.md`)
+- [ ] Whether Dashboard section should stay high-level here or link out to a separate doc once built
+
+---
+*This document reflects only what is defined in Blueprint v1.1. No implementation details or
+results beyond what is stated above have been assumed or invented.*
