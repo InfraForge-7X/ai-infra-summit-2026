@@ -1,14 +1,23 @@
 """FastAPI dependency providers for AFRI-EDGE services."""
 
+from src.adapters.cloud_adapter import CloudTargetAdapter
+from src.adapters.edge_adapter import EdgeTargetAdapter
+from src.adapters.local_adapter import LocalTargetAdapter
+from src.adapters.router import ExecutionRouter
 from src.api.services.routing import RoutingService
 from src.api.state_adapter import StateStoreAdapter
 from src.core.decision_engine import DecisionEngine
+from src.monitoring.infrastructure_monitor import InfrastructureMonitor
+from src.monitoring.state_integration import InfrastructureStateCollector
 
 # Module-level singletons for dependency injection
 # These are created once and reused across requests
 _state_adapter: StateStoreAdapter | None = None
 _decision_engine: DecisionEngine | None = None
 _routing_service: RoutingService | None = None
+_infrastructure_monitor: InfrastructureMonitor | None = None
+_state_collector: InfrastructureStateCollector | None = None
+_execution_router: ExecutionRouter | None = None
 
 
 def _get_state_adapter() -> StateStoreAdapter:
@@ -25,6 +34,38 @@ def _get_decision_engine() -> DecisionEngine:
     if _decision_engine is None:
         _decision_engine = DecisionEngine()
     return _decision_engine
+
+
+def get_infrastructure_monitor() -> InfrastructureMonitor:
+    """Return the singleton infrastructure monitor."""
+    global _infrastructure_monitor
+    if _infrastructure_monitor is None:
+        _infrastructure_monitor = InfrastructureMonitor()
+    return _infrastructure_monitor
+
+
+def get_state_collector() -> InfrastructureStateCollector:
+    """Return the configured infrastructure state collector."""
+    global _state_collector
+    if _state_collector is None:
+        adapter = _get_state_adapter()
+        _state_collector = InfrastructureStateCollector(
+            monitor=get_infrastructure_monitor(),
+            state_store=adapter.store,
+        )
+    return _state_collector
+
+
+def get_execution_router() -> ExecutionRouter:
+    """Return the configured execution router with default target adapters."""
+    global _execution_router
+    if _execution_router is None:
+        router = ExecutionRouter()
+        router.register_adapter(LocalTargetAdapter())
+        router.register_adapter(EdgeTargetAdapter())
+        router.register_adapter(CloudTargetAdapter())
+        _execution_router = router
+    return _execution_router
 
 
 def get_routing_service() -> RoutingService:
@@ -52,7 +93,10 @@ def get_state_adapter() -> StateStoreAdapter:
 
 def reset_dependencies() -> None:
     """Reset all cached dependencies (for testing)."""
-    global _state_adapter, _decision_engine, _routing_service
+    global _state_adapter, _decision_engine, _routing_service, _infrastructure_monitor, _state_collector, _execution_router
     _state_adapter = None
     _decision_engine = None
     _routing_service = None
+    _infrastructure_monitor = None
+    _state_collector = None
+    _execution_router = None
