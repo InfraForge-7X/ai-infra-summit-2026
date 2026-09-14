@@ -11,6 +11,12 @@
  * two places: it spells the field `reason[]` (code says `reasons`) and shows
  * uppercase enum values (code is lowercase). The code wins.
  *
+ * Verified against origin/main at 24514ab (decision engine, #21) — the commit
+ * that added `ranked_candidates`. Every model here sets `extra="forbid"`, so a
+ * field the UI invents is a 422 on the way in and a silently ignored key on
+ * the way out. Nothing below is speculative: if it is in this file, it is in
+ * models.py.
+ *
  * @see src/shared/models.py
  */
 
@@ -55,15 +61,41 @@
  */
 
 /**
+ * One target as the Decision Engine evaluated it.
+ *
+ * `score` is null when `eligible` is false — an ineligible target was never
+ * scored, which is a different fact from scoring zero, and the UI must render
+ * it as an em dash. A target fails eligibility on a HARD constraint, and
+ * `disqualification_reasons` says which; it is empty when eligible.
+ *
+ * `score_breakdown` is per-dimension (performance, cost, and whatever else the
+ * engine is configured with). The keys are the engine's to choose — the UI
+ * reads whatever arrives rather than assuming a fixed set, because the
+ * pipeline is explicitly "configurable scoring" and a hard-coded list here
+ * would silently drop a dimension the day someone adds one.
+ *
+ * @typedef {object} RoutingCandidate
+ * @property {ExecutionTarget} target
+ * @property {boolean} eligible
+ * @property {string[]} disqualification_reasons  Empty when eligible.
+ * @property {number | null} score                0–1, null when ineligible.
+ * @property {Record<string, number>} score_breakdown  Each value 0–1.
+ */
+
+/**
  * @typedef {object} RoutingDecision
  * @property {string} task_id
  * @property {ExecutionTarget} target
  * @property {number} score            0–1
  * @property {string[]} reasons        At least one. Length is not fixed.
+ * @property {RoutingCandidate[]} ranked_candidates  Every target the engine
+ *   looked at, highest score first, INCLUDING the ineligible ones. Never
+ *   empty. The chosen target appears here too — it is not held out.
  *
- * The model sets `extra="forbid"` and carries nothing else — in particular
- * there is no candidate ranking, so the UI cannot show why the other two
- * targets lost. Open question for Tsadok.
+ * The ranking is what lets the dashboard show why the other targets lost
+ * rather than only announcing the winner. It is also the clearest evidence
+ * that the engine, not the frontend, did the deciding: the UI renders an
+ * order the backend already computed and never sorts or scores anything.
  */
 
 /**

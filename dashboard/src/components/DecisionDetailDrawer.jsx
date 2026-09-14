@@ -4,22 +4,18 @@ import styles from './DecisionDetailDrawer.module.css'
 /**
  * B1 — the exact payloads behind what the dashboard is showing.
  *
- * The original design for this drawer had a candidate ranking table: all three
- * targets, their scores, and why each was rejected. That data does not exist.
- * `RoutingDecision` sets extra="forbid" and carries only task_id, target,
- * score and reasons. Tsadok's call is to leave the contract alone until
- * Hoàng's Decision Engine shows what ranking information is worth exposing,
- * and to revisit during integration.
- *
- * So this drawer shows the raw contracts instead, and says plainly what is
- * missing rather than implying the engine did not weigh alternatives.
+ * This drawer used to carry a note saying the contract had no candidate
+ * ranking, so the dashboard could not show why the other targets lost. #21
+ * added `ranked_candidates` and that note is gone: the ranking is now on the
+ * page itself, and what lives here is the part too detailed for it — the
+ * per-dimension `score_breakdown` behind each candidate's single number.
  *
  * @param {object} props
  * @param {boolean} props.open
  * @param {() => void} props.onClose
  * @param {import('../mocks/contracts.js').RoutingDecision | null} props.decision
  * @param {import('../mocks/contracts.js').WorkloadProfile} props.workload
- * @param {import('../mocks/contracts.js').InfrastructureState} props.targetState
+ * @param {import('../mocks/contracts.js').InfrastructureState} [props.targetState]
  * @param {import('../mocks/contracts.js').ExecutionResult | null} props.execution
  */
 export default function DecisionDetailDrawer({
@@ -30,6 +26,12 @@ export default function DecisionDetailDrawer({
   targetState,
   execution,
 }) {
+  // Only candidates that were actually scored have dimensions to show; an
+  // ineligible target never got that far.
+  const breakdowns = (decision?.ranked_candidates ?? [])
+    .filter((candidate) => Object.keys(candidate.score_breakdown ?? {}).length)
+    .map((candidate) => [candidate.target, candidate.score_breakdown])
+
   return (
     <Drawer
       open={open}
@@ -39,19 +41,30 @@ export default function DecisionDetailDrawer({
     >
       <Payload label="RoutingDecision" value={decision ?? { error: 'no eligible target' }} />
       <Payload label="WorkloadProfile sent" value={workload} />
-      <Payload label={`InfrastructureState — ${targetState.target.toUpperCase()}`} value={targetState} />
+      {/* Absent for the moment between the page loading and the first poll
+          returning. A drawer that crashes the app rather than showing one
+          fewer payload is a bad trade. */}
+      {targetState ? (
+        <Payload
+          label={`InfrastructureState — ${targetState.target.toUpperCase()}`}
+          value={targetState}
+        />
+      ) : null}
       {execution ? <Payload label="ExecutionResult" value={execution} /> : null}
 
-      <section className={styles.gap}>
-        <p className={styles.gapTitle}>No candidate ranking</p>
-        <p className={styles.gapBody}>
-          The contract carries only the winning target, its score and its
-          reasons — so the dashboard cannot show why LOCAL and CLOUD lost. That
-          comparison is what would prove the engine weighed alternatives.
-          Deferred to the integration phase, once the Decision Engine shows what
-          is worth exposing.
-        </p>
-      </section>
+      {breakdowns.length ? (
+        <section className={styles.gap}>
+          <p className={styles.gapTitle}>Score breakdown</p>
+          <p className={styles.gapBody}>
+            The dimensions behind each candidate&rsquo;s single number. The keys
+            are the engine&rsquo;s — scoring is configurable, so this renders
+            whatever arrives rather than a fixed set.
+          </p>
+          {breakdowns.map(([target, breakdown]) => (
+            <Payload key={target} label={target.toUpperCase()} value={breakdown} />
+          ))}
+        </section>
+      ) : null}
     </Drawer>
   )
 }

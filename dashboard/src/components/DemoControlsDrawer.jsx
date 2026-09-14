@@ -74,7 +74,7 @@ export default function DemoControlsDrawer({
       <Group title="Conditions" hint="Change infrastructure and watch routing respond">
         <Control
           label="Reroute under pressure"
-          hint="Edge saturates, the work moves and the interface changes colour"
+          hint="Cloud latency rises, the work moves to EDGE and the interface changes colour"
           onClick={choose('rerouted')}
           active={current === 'rerouted'}
         />

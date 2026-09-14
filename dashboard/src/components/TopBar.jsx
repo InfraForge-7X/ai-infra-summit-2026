@@ -36,10 +36,15 @@ export default function TopBar({ onOpenDemoControls }) {
               {clock}
             </span>
           </span>
-          <Button small onClick={onOpenDemoControls}>
-            <Icon icon={Settings01Icon} size={16} />
-            Demo controls
-          </Button>
+          {/* Omitted entirely when there is nothing to open, rather than left
+              on screen doing nothing. The live dashboard has no fixtures to
+              select, and a button that does not respond reads as a bug. */}
+          {onOpenDemoControls ? (
+            <Button small onClick={onOpenDemoControls}>
+              <Icon icon={Settings01Icon} size={16} />
+              Demo controls
+            </Button>
+          ) : null}
         </div>
       </div>
     </header>

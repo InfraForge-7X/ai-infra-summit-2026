@@ -17,7 +17,7 @@
  * @typedef {import('./fixtures.js').RoutingEvent} RoutingEvent
  */
 
-import { history as baseHistory, infrastructure } from './fixtures.js'
+import { candidates, history as baseHistory, infrastructure, rank } from './fixtures.js'
 
 /**
  * @typedef {object} ApiError
@@ -67,6 +67,9 @@ const decisionOf = (overrides) => ({
   target: 'cloud',
   score: 0.61,
   reasons: ['Latency within requirement'],
+  // Every decision carries a ranking — the contract requires a non-empty list,
+  // and a scenario without one would be a shape the API can never produce.
+  ranked_candidates: candidates,
   ...overrides,
 })
 
@@ -100,16 +103,29 @@ export const SCENARIOS = {
     history: baseHistory,
   },
 
+  // The reroute goes to EDGE rather than LOCAL, because the demo workload
+  // requires a GPU and LOCAL does not have one. Sending it to LOCAL made the
+  // headline contradict the ranking directly beneath it, and a judge who spots
+  // that stops believing the rest of the numbers.
   rerouted: {
-    label: 'Rerouted to LOCAL',
+    label: 'Rerouted to EDGE',
     caption:
       'Conditions changed, so the workload moved. The accent colour follows the target.',
     decision: decisionOf({
-      target: 'local',
+      target: 'edge',
       score: 0.74,
-      reasons: ['Edge compute saturated', 'Low network latency', 'Compute headroom available'],
+      reasons: [
+        'Cloud network latency exceeded the requirement',
+        'GPU available',
+        'Compute headroom available',
+      ],
+      ranked_candidates: rank([
+        ['edge', 0.74, { latency: 0.88, resources: 0.7, network: 0.79, reliability: 0.68, cost: 0.54 }],
+        ['cloud', 0.58, { latency: 0.41, resources: 0.69, network: 0.52, reliability: 0.64, cost: 0.31 }],
+        ['local', null, {}, ['GPU required by the workload is not available on this target']],
+      ]),
     }),
-    execution: executionOf({ target: 'local', network_latency_ms: 5, fps: 31 }),
+    execution: executionOf({ target: 'edge', network_latency_ms: 12, fps: 28 }),
     states: infrastructure(),
     history: [
       {
@@ -117,9 +133,9 @@ export const SCENARIOS = {
         time: '03:21:04',
         kind: 'reroute',
         from: 'cloud',
-        target: 'local',
+        target: 'edge',
         score: 0.74,
-        reason: 'Edge compute saturated',
+        reason: 'Cloud network latency exceeded the requirement',
       },
       ...baseHistory,
     ],
@@ -135,6 +151,15 @@ export const SCENARIOS = {
     decision: decisionOf({
       score: 0.63,
       reasons: ['Gain below switching threshold — holding current target'],
+      // The ranking is what makes this scenario legible: EDGE is genuinely
+      // first and the workload stayed on CLOUD anyway, because 0.68 - 0.63 is
+      // under the 0.08 switching margin. Without the list you have to take the
+      // sentence on trust; with it, the policy is visible on its face.
+      ranked_candidates: rank([
+        ['edge', 0.68, { latency: 0.84, resources: 0.58, network: 0.71, reliability: 0.6, cost: 0.55 }],
+        ['cloud', 0.63, { latency: 0.72, resources: 0.7, network: 0.74, reliability: 0.68, cost: 0.31 }],
+        ['local', null, {}, ['GPU required by the workload is not available on this target']],
+      ]),
     }),
     execution: executionOf({}),
     states: infrastructure(),
@@ -257,6 +282,11 @@ export const SCENARIOS = {
       target: 'edge',
       score: 0.68,
       reasons: ['Latency within requirement', 'Compute headroom available'],
+      ranked_candidates: rank([
+        ['edge', 0.68, { latency: 0.86, resources: 0.61, network: 0.7, reliability: 0.62, cost: 0.55 }],
+        ['cloud', 0.62, { latency: 0.7, resources: 0.71, network: 0.73, reliability: 0.67, cost: 0.31 }],
+        ['local', null, {}, ['GPU required by the workload is not available on this target']],
+      ]),
     }),
     execution: executionOf({ target: 'edge', network_latency_ms: 18, fps: null }),
     states: infrastructure(),

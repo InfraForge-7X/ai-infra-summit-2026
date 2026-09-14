@@ -54,7 +54,9 @@ describe('the live accent follows the decision', () => {
 
     await selectControl('Reroute under pressure')
 
-    expect(container.querySelector('[data-target]')).toHaveAttribute('data-target', 'local')
+    // EDGE, not LOCAL: the demo workload requires a GPU and LOCAL has none, so
+    // a reroute to LOCAL would contradict the ranking shown beneath it.
+    expect(container.querySelector('[data-target]')).toHaveAttribute('data-target', 'edge')
   })
 })
 
@@ -105,17 +107,21 @@ describe('decision detail drawer', () => {
     expect(within(drawer).getByText('WorkloadProfile sent')).toBeInTheDocument()
   })
 
-  // The contract carries no candidate ranking. Saying so is more honest than
-  // quietly omitting the comparison, which would read as the engine not
-  // having weighed alternatives.
-  it('states plainly that no candidate ranking exists', async () => {
+  // This used to assert that the drawer said no candidate ranking existed.
+  // #21 added one, so the assertion is now the opposite: the per-dimension
+  // breakdown behind each score is here, keyed by whatever the engine sent.
+  it('shows the per-dimension score breakdown for each scored candidate', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     await user.click(screen.getByRole('button', { name: /see decision/i }))
     const drawer = await screen.findByRole('dialog', { name: /decision detail/i })
 
-    expect(within(drawer).getByText(/no candidate ranking/i)).toBeInTheDocument()
+    expect(within(drawer).getByText(/score breakdown/i)).toBeInTheDocument()
+    expect(within(drawer).getByText('CLOUD')).toBeInTheDocument()
+    expect(within(drawer).getByText('EDGE')).toBeInTheDocument()
+    // LOCAL is ineligible in this scenario: never scored, so no dimensions.
+    expect(within(drawer).queryByText('LOCAL')).not.toBeInTheDocument()
   })
 })
 
@@ -149,7 +155,11 @@ describe('workload form', () => {
     await user.click(within(drawer).getByRole('option', { name: 'speech' }))
     await user.click(within(drawer).getByRole('button', { name: /route this workload/i }))
 
-    expect(screen.getByText('—')).toBeInTheDocument()
+    // Scoped to the execution card on purpose. An em dash now appears in the
+    // candidate ranking too, where it means "never scored" rather than "no
+    // frames" — two different absences that must not be asserted as one.
+    const fps = screen.getByText('Frames per second').closest('div')
+    expect(within(fps).getByText('—')).toBeInTheDocument()
   })
 
   it('does not offer the legacy workload type', async () => {

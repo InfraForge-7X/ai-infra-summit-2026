@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 
 import * as api from './api/client.js'
 import BaselinePanel from './components/BaselinePanel.jsx'
+import CandidateRanking from './components/CandidateRanking.jsx'
 import DecisionBand from './components/DecisionBand.jsx'
 import DecisionDetailDrawer from './components/DecisionDetailDrawer.jsx'
 import DemoControlsDrawer from './components/DemoControlsDrawer.jsx'
@@ -14,6 +15,7 @@ import TopBar from './components/TopBar.jsx'
 import WorkloadBar from './components/WorkloadBar.jsx'
 import WorkloadDrawer from './components/WorkloadDrawer.jsx'
 import { Button, SectionHeader } from './components/ui/ui.jsx'
+import { useLiveDashboard } from './hooks/useLiveDashboard.js'
 import { workload as defaultWorkload } from './mocks/fixtures.js'
 import { BASELINE } from './mocks/scenarios.js'
 import styles from './App.module.css'
@@ -45,13 +47,26 @@ export default function App() {
     new Date().toLocaleTimeString('en-GB'),
   )
 
-  // Still read through the client seam: when the API is live this becomes a
-  // poll of GET /state, /execution/{task_id} and /history.
-  const scenario = api.selectScenario(scenarioKey)
+  // Live polling when an API address is configured, and nothing at all when it
+  // is not — the hook returns null in mock mode and starts no timers.
+  const live = useLiveDashboard()
+
+  // One shape, two sources. Every component below renders a scenario and a live
+  // snapshot identically because they are the same shape; if they were not, the
+  // live path would be a second UI nobody had looked at until demo day.
+  const scenario = live ?? api.selectScenario(scenarioKey)
   const { decision, execution, states, history, error = null } = scenario
 
   /** @param {string} key */
   const selectScenario = (key) => {
+    // In live mode there is nothing to select. Every control that used to swap
+    // a fixture now asks the real service to route the workload again.
+    if (live) {
+      live.route(workload)
+      setLastGoodAt(new Date().toLocaleTimeString('en-GB'))
+      return
+    }
+
     const next = api.selectScenario(key)
     if (!next.error && next.decision) {
       setLastGoodAt(new Date().toLocaleTimeString('en-GB'))
@@ -60,12 +75,17 @@ export default function App() {
   }
 
   /**
-   * A new workload profile is submitted, not routed. The backend decides where
-   * it runs; this picks the canned response that decision would produce.
+   * A new workload profile is submitted, not routed — the backend decides where
+   * it runs. Live, that is a POST; on mocks, it picks the canned response that
+   * decision would have produced.
    * @param {import('./mocks/contracts.js').WorkloadProfile} next
    */
   const submitWorkload = (next) => {
     setWorkload(next)
+    if (live) {
+      live.route(next)
+      return
+    }
     selectScenario(next.workload_type === 'speech' ? 'speech' : 'running')
   }
 
@@ -82,7 +102,10 @@ export default function App() {
   return (
     <div className={styles.page} data-target={decision?.target ?? 'cloud'}>
       <div className={styles.inner}>
-        <TopBar onOpenDemoControls={() => setControlsOpen(true)} />
+        {/* The demo controls select fixtures, so they have nothing to offer a
+            live dashboard. Hiding the button is also the clearest signal that
+            what is on screen came from the service. */}
+        <TopBar onOpenDemoControls={live ? undefined : () => setControlsOpen(true)} />
 
         {api.USING_MOCK_DATA ? (
           <p className={styles.mockFlag}>
@@ -154,6 +177,11 @@ export default function App() {
                 status={execution.status}
                 onSeeDecision={() => setDetailOpen(true)}
               />
+              <CandidateRanking
+                candidates={decision.ranked_candidates}
+                selected={decision.target}
+              />
+
               <EnvironmentsPanel states={states} chosen={decision.target} />
 
               <div className={styles.split}>

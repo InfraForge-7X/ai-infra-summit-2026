@@ -1,0 +1,118 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-18);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* No box per row, for the same reason the execution tiles lost theirs: the
+   position number and the target name already separate one row from the next,
+   and a border round each would be a third frame inside the card. The selected
+   row is the one exception, and it earns it — see below. */
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-15);
+}
+
+.position {
+  flex: 0 0 auto;
+  inline-size: 22px;
+  color: var(--color-hint);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--lh-card);
+  text-align: end;
+}
+
+.body {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-10);
+}
+
+.target {
+  color: var(--color-charcoal);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.01em;
+}
+
+.target[data-target='local'] {
+  color: var(--color-local);
+}
+
+.target[data-target='edge'] {
+  color: var(--color-edge);
+}
+
+.target[data-target='cloud'] {
+  color: var(--color-cloud);
+}
+
+/* The score is pushed to the end of its row so all three sit on one right edge
+   and the comparison is vertical, the way the numbers in the baseline table
+   are. */
+.score {
+  margin-inline-start: auto;
+  color: var(--color-charcoal);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+/* An em dash is an absence, and it should not carry the weight of a reading. */
+.scoreMissing {
+  color: var(--color-muted);
+  font-weight: var(--fw-regular);
+}
+
+.excluded {
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
+}
+
+/* Why a target was excluded is the useful half of an ineligible row — it takes
+   the space the meter would have used, rather than being tucked into a
+   tooltip nobody opens during a three-minute demo. */
+.why {
+  margin: 0;
+  color: var(--color-body);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-ui);
+}
+
+/* The selected row gets a quiet accent rule on its inline edge. Not a box:
+   the point is to answer "which of these is running" at a glance, and the
+   Selected tag already says it in words for anyone who cannot see the colour. */
+.selected .position {
+  color: var(--accent);
+  font-weight: var(--fw-medium);
+}
+
+.note {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
+}
+
+@media (max-width: 600px) {
+  .row {
+    gap: var(--space-10);
+  }
+
+  .position {
+    inline-size: 16px;
+  }
+}

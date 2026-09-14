@@ -63,7 +63,11 @@ export function infrastructure() {
     cloud: {
       target: 'cloud',
       cpu_usage: 27.2,
-      gpu_available: false,
+      // The default workload requires a GPU and CLOUD is the target the engine
+      // picks, so CLOUD having no GPU made the headline decision contradict the
+      // evidence directly under it. LOCAL is the one without a GPU, which is
+      // also what makes it the honest example of an ineligible candidate.
+      gpu_available: true,
       ram_usage: 54.7,
       queue: 0,
       latency_ms: 5.1,
@@ -73,6 +77,46 @@ export function infrastructure() {
     },
   }
 }
+
+/**
+ * Build a ranked candidate list from rows written out by hand.
+ *
+ * This maps an array to objects. It does NOT sort, score, or test eligibility:
+ * the order out is the order in, exactly as the engine would have sent it.
+ * Sorting here would be the ranking logic walking into the frontend by the
+ * back door — the one thing DoD item #8 forbids.
+ *
+ * An ineligible target carries `score: null`, never 0. It was never scored,
+ * which is a different fact from scoring badly, and the contract says so.
+ *
+ * @param {[ExecutionTarget, number | null, Record<string, number>, string[]?][]} rows
+ * @returns {import('./contracts.js').RoutingCandidate[]}
+ */
+export const rank = (rows) =>
+  rows.map(([target, score, score_breakdown, disqualification_reasons = []]) => ({
+    target,
+    eligible: score !== null,
+    disqualification_reasons,
+    score,
+    score_breakdown,
+  }))
+
+/**
+ * The default ranking: CLOUD wins, EDGE is a close second, LOCAL never gets
+ * scored because it fails a hard constraint. Those three states — winner,
+ * viable alternative, disqualified — are the whole point of showing a ranking,
+ * so the default fixture exercises all three rather than three near-identical
+ * rows.
+ *
+ * Breakdown keys are the engine's to choose (#21 is explicitly configurable
+ * scoring), so the UI renders whatever keys arrive instead of assuming this
+ * set. These are the dimensions §9 names.
+ */
+export const candidates = rank([
+  ['cloud', 0.61, { latency: 0.72, resources: 0.68, network: 0.74, reliability: 0.66, cost: 0.31 }],
+  ['edge', 0.54, { latency: 0.81, resources: 0.42, network: 0.63, reliability: 0.58, cost: 0.55 }],
+  ['local', null, {}, ['GPU required by the workload is not available on this target']],
+])
 
 /** @type {RoutingDecision} */
 export const decision = {
@@ -85,6 +129,7 @@ export const decision = {
     'Compute headroom available',
     'Network stable',
   ],
+  ranked_candidates: candidates,
 }
 
 /** @type {ExecutionResult} */

@@ -68,16 +68,24 @@ export function Card({ children, className = '' }) {
   return <section className={`${styles.card} ${className}`}>{children}</section>
 }
 
+const TAG_TEXT = { live: 'Live', stale: 'Stale', selected: 'Selected' }
+
 /**
- * Only two kinds exist. Eligibility is the Decision Engine's judgement and is
- * not returned on any contract, so the dashboard cannot show "ineligible".
+ * A state label, never a free-text badge — the wording lives here so one state
+ * cannot be called two different things in two places.
+ *
+ * `selected` marks the candidate the decision names. It arrived with #21:
+ * `RoutingCandidate.eligible` is now on the contract, so the dashboard can
+ * finally distinguish "ranked below" from "never in the running". It could
+ * not before, and this comment used to say so.
+ *
  * @param {object} props
- * @param {'live' | 'stale'} props.kind
+ * @param {'live' | 'stale' | 'selected'} props.kind
  */
 export function Tag({ kind }) {
   return (
     <span className={`${styles.tag} ${kind === 'stale' ? styles.tagStale : ''}`}>
-      {kind === 'stale' ? 'Stale' : 'Live'}
+      {TAG_TEXT[kind] ?? TAG_TEXT.live}
     </span>
   )
 }
