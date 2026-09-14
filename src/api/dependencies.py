@@ -7,6 +7,7 @@ from src.adapters.router import ExecutionRouter
 from src.api.services.routing import RoutingService
 from src.api.state_adapter import StateStoreAdapter
 from src.core.decision_engine import DecisionEngine
+from src.core.workload_profiler import WorkloadProfiler
 from src.monitoring.infrastructure_monitor import InfrastructureMonitor
 from src.monitoring.state_integration import InfrastructureStateCollector
 
@@ -15,6 +16,7 @@ from src.monitoring.state_integration import InfrastructureStateCollector
 _state_adapter: StateStoreAdapter | None = None
 _decision_engine: DecisionEngine | None = None
 _routing_service: RoutingService | None = None
+_workload_profiler: WorkloadProfiler | None = None
 _infrastructure_monitor: InfrastructureMonitor | None = None
 _state_collector: InfrastructureStateCollector | None = None
 _execution_router: ExecutionRouter | None = None
@@ -34,6 +36,14 @@ def _get_decision_engine() -> DecisionEngine:
     if _decision_engine is None:
         _decision_engine = DecisionEngine()
     return _decision_engine
+
+
+def _get_workload_profiler() -> WorkloadProfiler:
+    """Return the singleton workload profiler."""
+    global _workload_profiler
+    if _workload_profiler is None:
+        _workload_profiler = WorkloadProfiler()
+    return _workload_profiler
 
 
 def get_infrastructure_monitor() -> InfrastructureMonitor:
@@ -91,12 +101,18 @@ def get_state_adapter() -> StateStoreAdapter:
     return _get_state_adapter()
 
 
+def get_workload_profiler() -> WorkloadProfiler:
+    """Return the workload profiler for AI request profiling."""
+    return _get_workload_profiler()
+
+
 def reset_dependencies() -> None:
     """Reset all cached dependencies (for testing)."""
-    global _state_adapter, _decision_engine, _routing_service, _infrastructure_monitor, _state_collector, _execution_router
+    global _state_adapter, _decision_engine, _routing_service, _workload_profiler, _infrastructure_monitor, _state_collector, _execution_router
     _state_adapter = None
     _decision_engine = None
     _routing_service = None
+    _workload_profiler = None
     _infrastructure_monitor = None
     _state_collector = None
     _execution_router = None
