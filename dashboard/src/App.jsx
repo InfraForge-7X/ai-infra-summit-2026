@@ -6,8 +6,11 @@ import CandidateRanking from './components/CandidateRanking.jsx'
 import DecisionBand from './components/DecisionBand.jsx'
 import DecisionDetailDrawer from './components/DecisionDetailDrawer.jsx'
 import DemoControlsDrawer from './components/DemoControlsDrawer.jsx'
+import EnvironmentsPanel from './components/EnvironmentsPanel.jsx'
+import ExecutionPanel from './components/ExecutionPanel.jsx'
 import GuideStrip from './components/GuideStrip.jsx'
 import Notice from './components/Notice.jsx'
+import RoutingHistory from './components/RoutingHistory.jsx'
 import TopBar from './components/TopBar.jsx'
 import WorkloadBar from './components/WorkloadBar.jsx'
 import WorkloadDrawer from './components/WorkloadDrawer.jsx'
@@ -157,13 +160,22 @@ export default function App() {
                 selected={decision.target}
               />
 
-              {isLive ? (
+              {!isLive ? (
+                <>
+                  <EnvironmentsPanel states={states} chosen={decision.target} />
+                  <ExecutionPanel
+                    execution={execution}
+                    targetState={states[decision.target]}
+                  />
+                  <RoutingHistory events={history} />
+                </>
+              ) : (
                 <Notice
                   tone="neutral"
                   heading="Routing decision confirmed"
                   body="This view is backed by POST /route. Infrastructure telemetry, execution status and routing history will appear here when their backend contracts are available."
                 />
-              ) : null}
+              )}
             </>
           ) : null}
 
