@@ -64,8 +64,6 @@ def test_route_dispatches_routing_decision_to_execution_router() -> None:
     execution_router = SpyExecutionRouter()
     request = {
         **make_workload().model_dump(mode="json"),
-        "execution_time_ms": 5.0,
-        "fps": 30.0,
     }
 
     app.dependency_overrides[get_routing_service] = lambda: service
