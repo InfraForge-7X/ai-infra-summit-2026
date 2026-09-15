@@ -10,7 +10,13 @@ from datetime import datetime, timezone
 import pytest
 
 from src.core.decision_engine import DecisionEngine
-from src.shared import ExecutionTarget, InfrastructureState, WorkloadProfile
+from src.shared import (
+    ComputeRequirement,
+    ExecutionTarget,
+    InfrastructureState,
+    WorkloadProfile,
+    WorkloadType,
+)
 
 
 def create_state(
@@ -55,11 +61,11 @@ def benchmark_workload() -> WorkloadProfile:
     """Representative real-time video workload used by every scenario."""
     return WorkloadProfile(
         task_id="benchmark-video-001",
-        workload_type="REAL_TIME_VIDEO",
+        workload_type=WorkloadType.REAL_TIME_VIDEO,
         model="yolo",
         input_size=640,
         latency_requirement=100,
-        compute_requirement="GPU",
+        compute_requirement=ComputeRequirement.GPU,
     )
 
 
