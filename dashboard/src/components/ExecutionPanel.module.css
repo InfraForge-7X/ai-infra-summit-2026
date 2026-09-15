@@ -1,27 +1,61 @@
 .card {
-  /* Needs a basis of its own: without one the history rail claims its designed
-     552px and this card is starved to a sliver instead of the two wrapping. */
   flex: 1 1 480px;
   min-inline-size: 0;
   min-block-size: 271px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 5%);
+}
+
+/* Execution is the proof that the routing decision became a real workload
+   placement. A quiet top rule gives the panel the same operational language
+   as the environment cards without introducing a second status system. */
+.card::before {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 3px;
+  background: var(--accent);
+  content: '';
 }
 
 .tiles {
   display: grid;
-  /* Three across when there is room, then two, then one — decided by the
-     space available rather than by a viewport width, because this card also
-     narrows when the history rail sits beside it. */
-  /* Never more than three across: the floor is the larger of 160px and a
-     third of the row, so six tiles land as 3 x 2, then 2 x 3, then one column. */
   grid-template-columns: repeat(
     auto-fit,
     minmax(max(160px, calc(33.333% - var(--space-16))), 1fr)
   );
-  /* Wider than it was, because the tiles no longer carry borders: with nothing
-     outlining them, the gap is the only thing separating one reading from the
-     next, so it has to be unambiguous. Rows get more room than columns — two
-     values stacked vertically run together far more easily than two side by
-     side, which the labels already separate. */
   column-gap: var(--space-24);
   row-gap: var(--space-26);
+}
+
+/* The lifecycle result is the strongest operational signal in this section.
+   Give the existing StatusTile more visual authority without changing the
+   status mapping or inventing frontend execution logic. */
+.tiles > :last-child {
+  border-radius: var(--radius-md);
+  background: var(--accent-wash);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+@media (max-width: 900px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-18);
+    row-gap: var(--space-20);
+  }
+}
+
+@media (max-width: 600px) {
+  .card {
+    min-block-size: 0;
+  }
+
+  .tiles {
+    grid-template-columns: 1fr;
+    gap: var(--space-15);
+  }
 }
