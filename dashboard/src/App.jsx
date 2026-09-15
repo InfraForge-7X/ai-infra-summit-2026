@@ -83,6 +83,7 @@ export default function App() {
   // actually exist.
   const showsDecision = Boolean(decision && (!error || error.showsLastKnownState))
   const isLive = Boolean(live)
+  const isRoutingFailure = !decision && !error
 
   return (
     <div className={styles.page} data-target={decision?.target ?? 'cloud'}>
@@ -99,7 +100,7 @@ export default function App() {
         <GuideStrip
           heading={scenario.label}
           body={scenario.caption}
-          actionLabel="Route workload"
+          actionLabel={isRoutingFailure ? 'Route again' : 'Route workload'}
           onAction={() => selectScenario('running')}
         />
 
