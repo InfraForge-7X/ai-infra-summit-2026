@@ -5,17 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * The live path, exercised without a backend.
  *
  * `USING_MOCK_DATA` is read at module load, so every test here stubs the
- * environment and then imports the modules fresh. That is the only way to see
- * the live branch at all — and it is worth seeing, because until #11 is
- * integrated these tests are the only thing standing between "the fetch layer
- * compiles" and "the fetch layer works".
+ * environment and then imports the modules fresh. These tests intentionally
+ * cover only the confirmed POST /route contract. Unsupported read endpoints
+ * are not polled until a backend contract exists.
  */
-
-const STATES = {
-  local: { target: 'local', cpu_usage: 20 },
-  edge: { target: 'edge', cpu_usage: 30 },
-  cloud: { target: 'cloud', cpu_usage: 40 },
-}
 
 const DECISION = {
   task_id: 'task-900',
@@ -25,15 +18,6 @@ const DECISION = {
   ranked_candidates: [
     { target: 'edge', eligible: true, disqualification_reasons: [], score: 0.71, score_breakdown: {} },
   ],
-}
-
-const EXECUTION = {
-  task_id: 'task-900',
-  target: 'edge',
-  status: 'running',
-  execution_time_ms: 1200,
-  network_latency_ms: 12,
-  fps: 28,
 }
 
 /** A fetch that answers by path, so a test only declares what it cares about. */
@@ -67,32 +51,24 @@ afterEach(() => {
 })
 
 describe('live dashboard', () => {
-  it('polls the read endpoints and exposes what came back', async () => {
-    vi.stubGlobal(
-      'fetch',
-      fetchReturning({ '/state': ok(Object.values(STATES)), '/history': ok([]) }),
-    )
+  it('does not poll unsupported read endpoints', async () => {
+    const fetchSpy = vi.fn(async () => ok([]))
+    vi.stubGlobal('fetch', fetchSpy)
     const { useLiveDashboard } = await loadHook()
 
     const { result } = renderHook(() => useLiveDashboard())
 
-    // A list keyed by the `target` each state already carries — a lookup, not
-    // a decision.
-    await waitFor(() => expect(result.current.states.edge).toBeTruthy())
-    expect(result.current.states.edge.cpu_usage).toBe(30)
-    expect(result.current.loading).toBe(false)
+    // Live mode is currently backed only by the confirmed POST /route contract.
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(fetchSpy).not.toHaveBeenCalled()
+    expect(result.current.states).toEqual({})
+    expect(result.current.history).toEqual([])
+    expect(result.current.execution).toBeNull()
   })
 
   it('routes a workload and keeps the decision the service returned', async () => {
-    vi.stubGlobal(
-      'fetch',
-      fetchReturning({
-        '/state': ok([]),
-        '/history': ok([]),
-        'POST /route': ok(DECISION),
-        '/execution/task-900': ok(EXECUTION),
-      }),
-    )
+    const fetchSpy = fetchReturning({ 'POST /route': ok(DECISION) })
+    vi.stubGlobal('fetch', fetchSpy)
     const { useLiveDashboard } = await loadHook()
 
     const { result } = renderHook(() => useLiveDashboard())
@@ -102,8 +78,10 @@ describe('live dashboard', () => {
 
     expect(result.current.decision.target).toBe('edge')
     expect(result.current.decision.ranked_candidates).toHaveLength(1)
-    expect(result.current.execution.fps).toBe(28)
+    expect(result.current.execution).toBeNull()
     expect(result.current.error).toBeNull()
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    expect(fetchSpy.mock.calls[0][1].method).toBe('POST')
   })
 
   it('keeps the last known decision on a 503', async () => {
@@ -111,9 +89,7 @@ describe('live dashboard', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url, init) => {
-        const path = String(url).replace('http://afri-edge.test', '')
         if (init?.method === 'POST') return routeResponse
-        if (path.startsWith('/execution')) return ok(EXECUTION)
         return ok([])
       }),
     )
@@ -130,8 +106,7 @@ describe('live dashboard', () => {
       await result.current.route({ task_id: 'task-900' })
     })
 
-    // The numbers are old, not gone. Blanking the board because one call failed
-    // throws away information the operator still needs (§21).
+    // The last decision remains visible while the route service is unavailable.
     expect(result.current.error.status).toBe(503)
     expect(result.current.error.showsLastKnownState).toBe(true)
     expect(result.current.decision.target).toBe('edge')
@@ -164,7 +139,7 @@ describe('live dashboard', () => {
     )
   })
 
-  it('treats an unreachable service the same as a 503', async () => {
+  it('treats an unreachable service as a 503 when routing', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => {
@@ -174,8 +149,11 @@ describe('live dashboard', () => {
     const { useLiveDashboard } = await loadHook()
 
     const { result } = renderHook(() => useLiveDashboard())
+    await act(async () => {
+      await result.current.route({ task_id: 'task-902' })
+    })
 
-    await waitFor(() => expect(result.current.error).toBeTruthy())
+    expect(result.current.error).toBeTruthy()
     expect(result.current.error.status).toBe(503)
   })
 
