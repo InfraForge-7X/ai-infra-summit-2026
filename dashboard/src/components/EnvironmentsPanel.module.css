@@ -1,95 +1,99 @@
-/* No surface of its own.
- *
- * This was a white panel holding three white cards, so the cards were white on
- * white separated by a hairline: they read as faint divisions of one block
- * rather than as three things being compared. The panel was never carrying
- * information — the heading groups the set and the grid spaces it.
- *
- * Dropping it also makes the chosen environment easier to see, which is the
- * whole point of the section: a card now lifts off the field behind it instead
- * of competing with a panel its own colour.
- */
 .panel {
   display: flex;
   flex-direction: column;
   gap: var(--space-15);
 }
 
-/* Flush with the cards below, and so with the outer edge of every sibling card
-   in the stack. This heading names the set; it does not sit in a box with it. */
 .head {
   padding-inline: 0;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-15);
   align-items: stretch;
 }
 
-/* The three targets are one comparison, so at tablet width they stack rather
-   than leaving the third alone on a second row. */
-@media (max-width: 900px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Every card carries an edge. Only the chosen one had a border before, so the
-   other two read as loose columns of text sitting beside a card rather than as
-   the same kind of thing. */
+/* Every environment is a comparable operational surface. Keeping the three
+   cards equal-height makes the infrastructure snapshot read as one control
+   plane rather than three unrelated metric blocks. */
 .card {
-  transition: border-color var(--dur-slow) ease, box-shadow var(--dur-slow) ease;
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--dur-slow) ease, box-shadow var(--dur-slow) ease,
+    transform var(--dur-fast) ease;
   display: flex;
   flex-direction: column;
-  gap: var(--space-10);
+  gap: var(--space-15);
+  min-block-size: 286px;
   padding: var(--space-18) var(--space-20) var(--space-19);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 5%);
 }
 
-/* The chosen environment is marked three ways — border, wash and the live
-   tag — because colour alone will not survive a projector. */
+/* Each target gets a quiet identity line. It uses the same target colour as
+   the ranking and decision cards, without turning the card into a traffic
+   light. */
+.card::before {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 3px;
+  background: var(--color-border);
+  content: '';
+}
+
+.card:has(.name) {
+  /* Kept intentionally neutral: target-specific identity comes from the
+     existing target-coloured name and Meter, not from inferred state. */
+}
+
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card);
+}
+
 .chosen {
   border-color: var(--accent);
   background-image: linear-gradient(
-    132.96deg,
-    rgba(255, 255, 255, 0.113) 4.73%,
-    var(--accent-wash) 126.85%
+    135deg,
+    var(--accent-wash) 0%,
+    var(--color-surface) 58%
   );
   box-shadow: var(--shadow-card);
+}
+
+.chosen::before {
+  background: var(--accent);
 }
 
 .cardHead {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-27);
+  gap: var(--space-15);
 }
 
 .identity {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  min-inline-size: 0;
   color: var(--color-charcoal);
   line-height: var(--lh-card);
 }
 
-/* Baseline-aligned row rather than inline text: the smaller adapter label was
-   growing the name's line box, so the EDGE card's freshness line sat a few
-   pixels below its neighbours' and the set stopped lining up. */
 .name {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: var(--space-8);
   font-size: var(--fs-lg);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
   line-height: var(--lh-card);
-  /* Fixed, so a card with an adapter label cannot be 3px taller than one
-     without and knock the whole row out of alignment. */
-  block-size: var(--lh-card);
 }
 
 .adapter {
@@ -98,8 +102,6 @@
   font-weight: var(--fw-regular);
 }
 
-/* Was 16px: louder than the numbers it describes and nearly the size of the
-   target name. Freshness qualifies the reading; it is not the reading. */
 .fresh {
   color: var(--color-muted);
   font-size: var(--fs-sm);
@@ -109,13 +111,14 @@
 
 .rows {
   display: flex;
+  flex: 1;
   flex-direction: column;
+  justify-content: space-between;
   gap: var(--space-10);
   margin: 0;
+  padding-block-start: var(--space-4);
 }
 
-/* The bar belongs to the number above it, so it sits closer to that row than
-   the rows sit to each other. Otherwise it reads as a rule between them. */
 .barRow {
   display: flex;
   flex-direction: column;
@@ -127,6 +130,7 @@
   display: flex;
   align-items: baseline;
   gap: var(--space-5);
+  min-block-size: 20px;
 }
 
 .rowLabel {
@@ -135,19 +139,36 @@
   font-size: var(--fs-sm);
 }
 
-/* The value was 11px against a 12px label — the most-read text on the page at
-   its smallest size, and smaller than its own caption. Values now lead. */
 .rowValue {
   margin: 0;
   color: var(--color-charcoal);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-/* An absence is not a reading. "none" should not sit at the same weight as
-   a measured value. */
 .rowValueMuted {
   color: var(--color-muted);
   font-weight: var(--fw-regular);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    min-block-size: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: var(--space-18) var(--space-15) var(--space-18);
+  }
+
+  .cardHead {
+    gap: var(--space-10);
+  }
 }
