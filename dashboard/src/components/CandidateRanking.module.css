@@ -1,30 +1,53 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-18);
+  gap: var(--space-6);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* No box per row, for the same reason the execution tiles lost theirs: the
-   position number and the target name already separate one row from the next,
-   and a border round each would be a third frame inside the card. The selected
-   row is the one exception, and it earns it — see below. */
 .row {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-15);
+  min-block-size: 58px;
+  padding: var(--space-10) var(--space-15);
+  border-radius: var(--radius-lg);
+  transition: background-color var(--dur-fast) ease, transform var(--dur-fast) ease;
+}
+
+.row:hover {
+  background: var(--color-surface-muted);
+}
+
+/* The selected target is visually promoted without changing the engine's
+   ranking order. The tag remains the explicit source of truth. */
+.selected {
+  background: var(--accent-wash);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .position {
   flex: 0 0 auto;
-  inline-size: 22px;
+  display: grid;
+  place-items: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-white);
   color: var(--color-hint);
   font-size: var(--fs-sm);
   font-variant-numeric: tabular-nums;
-  line-height: var(--lh-card);
-  text-align: end;
+  line-height: 1;
+}
+
+.selected .position {
+  border-color: var(--accent-border-strong);
+  color: var(--accent);
+  font-weight: var(--fw-semibold);
 }
 
 .body {
@@ -37,7 +60,7 @@
 
 .head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
   gap: var(--space-10);
 }
@@ -61,31 +84,26 @@
   color: var(--color-cloud);
 }
 
-/* The score is pushed to the end of its row so all three sit on one right edge
-   and the comparison is vertical, the way the numbers in the baseline table
-   are. */
 .score {
   margin-inline-start: auto;
   color: var(--color-charcoal);
   font-size: var(--fs-md);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
 }
 
-/* An em dash is an absence, and it should not carry the weight of a reading. */
 .scoreMissing {
   color: var(--color-muted);
   font-weight: var(--fw-regular);
 }
 
 .excluded {
+  padding-inline: var(--space-6);
   color: var(--color-muted);
   font-size: var(--fs-sm);
 }
 
-/* Why a target was excluded is the useful half of an ineligible row — it takes
-   the space the meter would have used, rather than being tucked into a
-   tooltip nobody opens during a three-minute demo. */
 .why {
   margin: 0;
   color: var(--color-body);
@@ -93,26 +111,28 @@
   line-height: var(--lh-ui);
 }
 
-/* The selected row gets a quiet accent rule on its inline edge. Not a box:
-   the point is to answer "which of these is running" at a glance, and the
-   Selected tag already says it in words for anyone who cannot see the colour. */
-.selected .position {
-  color: var(--accent);
-  font-weight: var(--fw-medium);
-}
-
 .note {
-  margin: 0;
+  margin-block-start: var(--space-15);
+  padding-block-start: var(--space-15);
+  border-block-start: 1px solid var(--color-border);
   color: var(--color-muted);
   font-size: var(--fs-sm);
+  line-height: var(--lh-ui);
 }
 
 @media (max-width: 600px) {
   .row {
+    min-block-size: 54px;
     gap: var(--space-10);
+    padding-inline: var(--space-10);
   }
 
   .position {
-    inline-size: 16px;
+    inline-size: 24px;
+    block-size: 24px;
+  }
+
+  .score {
+    font-size: var(--fs-sm);
   }
 }
