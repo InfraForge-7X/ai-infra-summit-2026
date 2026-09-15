@@ -1,6 +1,6 @@
 .band {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  grid-template-columns: minmax(0, 1.08fr) repeat(2, minmax(280px, 1fr));
   gap: var(--space-21);
   align-items: stretch;
 }
@@ -25,23 +25,46 @@
 
 /* ------------------------------------------------------------ target card */
 .targetCard {
+  position: relative;
   justify-content: space-between;
-  transition: background-color var(--dur-slow) ease;
+  overflow: hidden;
+  transition: background-color var(--dur-slow) ease, transform var(--dur-slow) ease;
   gap: var(--space-27);
   background-color: var(--accent);
   background-image: var(--accent-image);
   background-size: cover;
   background-position: center;
   color: var(--color-white);
+  box-shadow: 0 14px 34px rgb(0 0 0 / 12%);
+}
+
+/* A restrained infrastructure-style glow gives the selected environment
+   stronger visual priority without introducing another status signal. */
+.targetCard::after {
+  position: absolute;
+  inset-inline-end: -56px;
+  inset-block-end: -72px;
+  inline-size: 180px;
+  block-size: 180px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 24px rgb(255 255 255 / 6%), 0 0 0 48px rgb(255 255 255 / 3%);
+  content: '';
+  pointer-events: none;
 }
 
 .targetLabel {
+  position: relative;
+  z-index: 1;
   font-size: var(--fs-lg);
   font-weight: var(--fw-medium);
   line-height: var(--lh-card);
+  letter-spacing: 0.01em;
 }
 
 .targetBody {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: var(--space-15);
@@ -56,11 +79,12 @@
 .glyph {
   display: grid;
   place-items: center;
-  inline-size: 44px;
-  block-size: 44px;
+  inline-size: 52px;
+  block-size: 52px;
   border: 2px solid var(--accent-border-strong);
   border-radius: var(--radius-md);
   background: var(--color-white);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 12%);
 }
 
 .name {
@@ -71,12 +95,15 @@
 }
 
 .caption {
+  max-inline-size: 30ch;
   color: var(--color-on-accent);
   font-size: var(--fs-base);
   line-height: var(--lh-body);
 }
 
 .status {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: var(--space-10);
@@ -191,6 +218,12 @@
   margin-block-start: var(--space-15);
 }
 
+@media (max-width: 960px) {
+  .band {
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  }
+}
+
 @media (max-width: 600px) {
   .card,
   .targetCard {
@@ -200,6 +233,11 @@
 
   .name {
     font-size: var(--fs-3xl);
+  }
+
+  .glyph {
+    inline-size: 46px;
+    block-size: 46px;
   }
 }
 
