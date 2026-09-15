@@ -30,7 +30,7 @@ export function useLiveDashboard() {
 
   const [decision, setDecision] = useState(null)
   const [routeError, setRouteError] = useState(null)
-  const [loading, setLoading] = useState(isLive)
+  const [loading, setLoading] = useState(false)
 
   // Kept for future execution telemetry once a confirmed backend contract
   // exists. They intentionally remain empty in live mode rather than being
