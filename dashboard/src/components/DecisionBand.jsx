@@ -30,20 +30,17 @@ const TARGET_ICON = {
  * decision, and why. Everything here is read off a RoutingDecision — the
  * frontend computes none of it.
  *
+ * `status` is optional because the confirmed POST /route contract returns a
+ * RoutingDecision, not an ExecutionResult. Live mode therefore shows a neutral
+ * "Decision returned" state until an execution-status contract exists.
+ *
  * @param {object} props
  * @param {import('../mocks/contracts.js').RoutingDecision} props.decision
- * @param {import('../mocks/contracts.js').ExecutionStatus} props.status
+ * @param {import('../mocks/contracts.js').ExecutionStatus} [props.status]
  * @param {() => void} [props.onSeeDecision]
  */
 export default function DecisionBand({ decision, status, onSeeDecision }) {
   return (
-    /*
-     * The design spec allows exactly one moment of motion: the reroute. Keying
-     * the band on the target remounts it when — and only when — the work moves,
-     * so the wash animation runs on that change and on nothing else. A scenario
-     * that keeps the same target (a 503, say) does not re-key, so it does not
-     * flash. No effect, no timer, no state.
-     */
     <div className={styles.band} key={decision.target}>
       <TargetCard target={decision.target} status={status} />
       <ScoreCard score={decision.score} />
@@ -55,12 +52,14 @@ export default function DecisionBand({ decision, status, onSeeDecision }) {
 /**
  * @param {object} props
  * @param {import('../mocks/contracts.js').ExecutionTarget} props.target
- * @param {import('../mocks/contracts.js').ExecutionStatus} props.status
+ * @param {import('../mocks/contracts.js').ExecutionStatus} [props.status]
  */
 function TargetCard({ target, status }) {
+  const statusLabel = status ? STATUS_LABEL[status] : 'Decision returned'
+
   return (
     <article className={styles.targetCard}>
-      <p className={styles.targetLabel}>Running on</p>
+      <p className={styles.targetLabel}>Selected target</p>
 
       <div className={styles.targetBody}>
         <div className={styles.targetName}>
@@ -73,13 +72,11 @@ function TargetCard({ target, status }) {
       </div>
 
       <p className={styles.status}>
-        {/* The dot encodes lifecycle, not target — so its colour is fixed and
-            it carries a ring to stay legible on any of the three cards. */}
         <span
-          className={`${styles.dot} ${DOT_TONE[status] ? styles[DOT_TONE[status]] : ''}`}
+          className={`${styles.dot} ${status && DOT_TONE[status] ? styles[DOT_TONE[status]] : ''}`}
           aria-hidden="true"
         />
-        {STATUS_LABEL[status]}
+        {statusLabel}
       </p>
     </article>
   )
@@ -96,9 +93,6 @@ function ScoreCard({ score }) {
         <span className={styles.scoreUnit}>/1.00</span>
       </p>
 
-      {/* The tick sits at the score plus the switching margin: the bar a rival
-          target has to clear before AFRI-EDGE will move the work. The engine
-          applies that policy; the dashboard only draws where it falls. */}
       <Meter
         value={score}
         mark={score + SWITCHING_MARGIN}
@@ -114,9 +108,6 @@ function ScoreCard({ score }) {
         <span>1</span>
       </p>
 
-      {/* The card's lower half was empty. What the number is made of is worth
-          more there than whitespace — and §9 names the factors, so this is
-          description, not a claim about weights. */}
       <p className={styles.scoreNote}>
         Weighted across latency, available resources, network quality and
         reliability, less cost.
@@ -126,8 +117,7 @@ function ScoreCard({ score }) {
 }
 
 /**
- * `reasons` is a variable-length array with a minimum of one. Do not assume
- * four — the layout has to hold for one.
+ * `reasons` is a variable-length array with a minimum of one.
  *
  * @param {object} props
  * @param {string[]} props.reasons
