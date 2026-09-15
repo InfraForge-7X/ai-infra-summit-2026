@@ -59,7 +59,7 @@ describe('live dashboard', () => {
     const { result } = renderHook(() => useLiveDashboard())
 
     // Live mode is currently backed only by the confirmed POST /route contract.
-    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.loading).toBe(false)
     expect(fetchSpy).not.toHaveBeenCalled()
     expect(result.current.states).toEqual({})
     expect(result.current.history).toEqual([])
