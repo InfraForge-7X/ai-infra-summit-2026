@@ -6,5 +6,6 @@ the Metrics & State Layer and the Decision Engine.
 """
 
 from src.monitoring.infrastructure_monitor import InfrastructureMonitor
+from src.monitoring.state_integration import InfrastructureStateCollector
 
-__all__ = ["InfrastructureMonitor"]
+__all__ = ["InfrastructureMonitor", "InfrastructureStateCollector"]

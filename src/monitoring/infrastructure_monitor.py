@@ -21,6 +21,7 @@ Design principles:
 
 import shutil
 import subprocess
+from collections.abc import Callable
 from datetime import datetime, timezone
 
 import psutil
@@ -59,6 +60,26 @@ class InfrastructureMonitor:
         # state is a valid InfrastructureState ready for StateStore.register()
     """
 
+    def __init__(self) -> None:
+        """Initialize InfrastructureMonitor with target probe registry."""
+        self._target_probes: dict[
+            ExecutionTarget,
+            Callable[[ExecutionTarget], InfrastructureState],
+        ] = {}
+
+    def register_target_probe(
+        self,
+        target: ExecutionTarget,
+        probe: Callable[[ExecutionTarget], InfrastructureState],
+    ) -> None:
+        """Register a custom probe callable for a target (e.g. EDGE or CLOUD).
+
+        Args:
+            target: The ExecutionTarget identity to register the probe for.
+            probe: Callable taking ExecutionTarget and returning InfrastructureState.
+        """
+        self._target_probes[target] = probe
+
     def collect(self, target: ExecutionTarget) -> InfrastructureState:
         """Collect a current infrastructure snapshot for the given target.
 
@@ -70,6 +91,9 @@ class InfrastructureMonitor:
             (GPU, network) gracefully fall back to safe defaults when
             unavailable. Never raises.
         """
+        if target in self._target_probes:
+            return self._target_probes[target](target)
+
         if target == ExecutionTarget.LOCAL:
             cpu = self._collect_cpu()
             ram = self._collect_ram()
