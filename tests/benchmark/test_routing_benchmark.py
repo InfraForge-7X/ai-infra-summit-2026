@@ -166,7 +166,11 @@ def test_static_baseline_is_explicit_and_comparable(
 ) -> None:
     """The benchmark compares every scenario against the same static policy."""
     scenario = scenario_factory()
-    decision = DecisionEngine().decide(benchmark_workload, scenario.states)
+    decision = DecisionEngine().decide(
+        benchmark_workload,
+        scenario.states,
+        current_target=scenario.current_target,
+    )
 
     adaptive_target = decision.target
     static_target = scenario.static_target
