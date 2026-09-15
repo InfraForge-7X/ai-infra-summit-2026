@@ -5,13 +5,37 @@ changing routing logic or introducing benchmark-only routing parameters.
 """
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 import pytest
 
 from src.core.decision_engine import DecisionEngine
 from src.shared import ExecutionTarget, InfrastructureState, WorkloadProfile
 
-from tests.core.decision_engine.conftest import create_state
+
+def create_state(
+    target: ExecutionTarget,
+    cpu_usage: float = 30.0,
+    gpu_available: bool = True,
+    ram_usage: float = 40.0,
+    queue: int = 0,
+    latency_ms: float = 10.0,
+    bandwidth_mbps: float = 100.0,
+    packet_loss: float = 0.0,
+    timestamp: datetime | None = None,
+) -> InfrastructureState:
+    """Create a deterministic infrastructure state for benchmark scenarios."""
+    return InfrastructureState(
+        target=target,
+        cpu_usage=cpu_usage,
+        gpu_available=gpu_available,
+        ram_usage=ram_usage,
+        queue=queue,
+        latency_ms=latency_ms,
+        bandwidth_mbps=bandwidth_mbps,
+        packet_loss=packet_loss,
+        timestamp=timestamp or datetime.now(timezone.utc),
+    )
 
 
 @dataclass(frozen=True)
