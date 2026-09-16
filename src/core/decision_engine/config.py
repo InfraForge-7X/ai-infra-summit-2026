@@ -1,0 +1,115 @@
+"""Configuration for the Decision Engine.
+
+All weights, thresholds, and tunable parameters are defined here.
+No magic numbers should be scattered in the implementation.
+"""
+
+from dataclasses import dataclass, field
+
+from src.shared import ExecutionTarget
+
+
+@dataclass(frozen=True)
+class ScoringWeights:
+    """Configurable weights for multi-dimensional scoring.
+
+    All weights should sum to 1.0 for normalized composite scores.
+    Each weight represents the relative importance of that dimension.
+    """
+
+    performance: float = 0.30  # Latency relative to requirement, queue depth
+    resources: float = 0.25  # CPU, RAM utilization, GPU availability
+    network: float = 0.20  # Bandwidth adequacy, packet loss
+    reliability: float = 0.15  # Historical uptime (placeholder for MVP)
+    cost: float = 0.10  # Operational cost by target type
+
+    def __post_init__(self) -> None:
+        """Validate weights sum to 1.0 within tolerance."""
+        total = self.performance + self.resources + self.network + self.reliability + self.cost
+        if not (0.99 <= total <= 1.01):
+            raise ValueError(f"Scoring weights must sum to 1.0, got {total:.2f}")
+
+        for name, value in [
+            ("performance", self.performance),
+            ("resources", self.resources),
+            ("network", self.network),
+            ("reliability", self.reliability),
+            ("cost", self.cost),
+        ]:
+            if not (0.0 <= value <= 1.0):
+                raise ValueError(f"Weight '{name}' must be between 0 and 1, got {value}")
+
+
+@dataclass(frozen=True)
+class ScoringParameters:
+    """Configurable parameters used by the scoring functions."""
+
+    bandwidth_reference_mbps: float = 100.0
+    queue_penalty_per_task: float = 0.05
+    max_queue_penalty: float = 0.30
+    gpu_bonus: float = 0.10
+    cost_scores: dict[ExecutionTarget, float] = field(
+        default_factory=lambda: {
+            ExecutionTarget.LOCAL: 1.0,
+            ExecutionTarget.EDGE: 0.7,
+            ExecutionTarget.CLOUD: 0.4,
+        }
+    )
+
+    def __post_init__(self) -> None:
+        """Validate scoring parameter values."""
+        if self.bandwidth_reference_mbps <= 0:
+            raise ValueError("bandwidth_reference_mbps must be positive")
+        if self.queue_penalty_per_task < 0:
+            raise ValueError("queue_penalty_per_task must be non-negative")
+        if self.max_queue_penalty < 0:
+            raise ValueError("max_queue_penalty must be non-negative")
+        if not (0.0 <= self.gpu_bonus <= 1.0):
+            raise ValueError("gpu_bonus must be between 0 and 1")
+        if any(not (0.0 <= score <= 1.0) for score in self.cost_scores.values()):
+            raise ValueError("All cost scores must be between 0 and 1")
+
+
+@dataclass(frozen=True)
+class ConstraintThresholds:
+    """Thresholds for hard constraint evaluation.
+
+    These define when a target becomes ineligible.
+    """
+
+    max_cpu_usage: float = 95.0  # Exclude if CPU usage exceeds this
+    max_ram_usage: float = 95.0  # Exclude if RAM usage exceeds this
+    max_packet_loss: float = 10.0  # Exclude if packet loss exceeds this
+    min_bandwidth_mbps: float = 1.0  # Exclude if bandwidth below this
+
+
+@dataclass(frozen=True)
+class DecisionEngineConfig:
+    """Top-level configuration for the Decision Engine.
+
+    Attributes:
+        scoring_weights: Weights for each scoring dimension.
+        scoring_parameters: Tunable parameters used by scoring functions.
+        constraint_thresholds: Constraint thresholds.
+        switching_threshold: Minimum score improvement (0-1) required to switch
+            targets. Prevents flapping between similar-scoring targets.
+        max_state_age_seconds: Maximum age of infrastructure state before
+            it's considered stale.
+    """
+
+    scoring_weights: ScoringWeights = field(default_factory=ScoringWeights)
+    scoring_parameters: ScoringParameters = field(default_factory=ScoringParameters)
+    constraint_thresholds: ConstraintThresholds = field(default_factory=ConstraintThresholds)
+    switching_threshold: float = 0.15  # 15% improvement required to switch
+    max_state_age_seconds: float = 30.0
+
+    def __post_init__(self) -> None:
+        """Validate configuration values."""
+        if not (0.0 <= self.switching_threshold <= 1.0):
+            raise ValueError(
+                f"switching_threshold must be between 0 and 1, got {self.switching_threshold}"
+            )
+        if self.max_state_age_seconds <= 0:
+            raise ValueError(
+                f"max_state_age_seconds must be positive, got {self.max_state_age_seconds}"
+            )
