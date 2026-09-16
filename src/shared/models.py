@@ -64,13 +64,58 @@ class InfrastructureState(BaseModel):
         return v
 
 
+class RoutingCandidate(BaseModel):
+    """A candidate target evaluated by the Decision Engine.
+
+    Represents a single execution target with its eligibility status,
+    score breakdown, and explanatory reasons. Used to provide full
+    transparency into the routing decision process.
+    """
+
+    target: Annotated[ExecutionTarget, Field(description="Execution target being evaluated")]
+    eligible: Annotated[bool, Field(description="Whether this target passed hard constraints")]
+    disqualification_reasons: Annotated[
+        list[str],
+        Field(default_factory=list, description="Reasons why target is ineligible (empty if eligible)"),
+    ]
+    score: Annotated[
+        float | None,
+        Field(default=None, ge=0, le=1, description="Composite score (0-1), None if ineligible"),
+    ]
+    score_breakdown: Annotated[
+        dict[str, float],
+        Field(default_factory=dict, description="Per-dimension scores (e.g., performance, cost)"),
+    ]
+
+    model_config = {"frozen": False, "extra": "forbid"}
+
+    @field_validator("score_breakdown")
+    @classmethod
+    def validate_score_breakdown_values(cls, v: dict[str, float]) -> dict[str, float]:
+        """Ensure all score breakdown values are within valid range."""
+        for key, value in v.items():
+            if not 0 <= value <= 1:
+                raise ValueError(f"Score breakdown '{key}' must be between 0 and 1, got {value}")
+        return v
+
+
 class RoutingDecision(BaseModel):
-    """Routing decision produced by the Decision Engine."""
+    """Routing decision produced by the Decision Engine.
+
+    Contains the selected target, its score, human-readable reasons,
+    and the full list of ranked candidates for Dashboard visualization.
+    The Decision Engine is the source of truth — the frontend only
+    visualizes its output without computing any intelligence.
+    """
 
     task_id: Annotated[str, Field(min_length=1, description="Task ID this decision applies to")]
     target: Annotated[ExecutionTarget, Field(description="Selected execution target")]
-    score: Annotated[float, Field(ge=0, le=1, description="Computed score for this decision (0-1)")]
-    reasons: Annotated[list[str], Field(min_length=1, description="Explanatory reasons for the decision")]
+    score: Annotated[float, Field(ge=0, le=1, description="Composite score of selected target (0-1)")]
+    reasons: Annotated[list[str], Field(min_length=1, description="Human-readable reasons for the decision")]
+    ranked_candidates: Annotated[
+        list[RoutingCandidate],
+        Field(description="All candidates ranked by score (highest first), including ineligible"),
+    ]
 
     model_config = {"frozen": False, "extra": "forbid"}
 
@@ -82,6 +127,14 @@ class RoutingDecision(BaseModel):
             raise ValueError("At least one reason must be provided")
         if any(not reason.strip() for reason in v):
             raise ValueError("Reasons cannot be empty strings")
+        return v
+
+    @field_validator("ranked_candidates")
+    @classmethod
+    def validate_ranked_candidates(cls, v: list["RoutingCandidate"]) -> list["RoutingCandidate"]:
+        """Ensure ranked candidates list is not empty."""
+        if not v:
+            raise ValueError("At least one candidate must be provided")
         return v
 
 

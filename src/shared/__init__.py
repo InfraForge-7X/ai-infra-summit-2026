@@ -15,6 +15,7 @@ from src.shared.enums import (
 from src.shared.models import (
     ExecutionResult,
     InfrastructureState,
+    RoutingCandidate,
     RoutingDecision,
     WorkloadProfile,
 )
@@ -30,6 +31,7 @@ __all__ = [
     # Models
     "ExecutionResult",
     "InfrastructureState",
+    "RoutingCandidate",
     "RoutingDecision",
     "WorkloadProfile",
 ]
