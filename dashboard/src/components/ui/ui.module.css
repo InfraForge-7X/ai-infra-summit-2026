@@ -1,0 +1,252 @@
+/* Primitives. Values come from tokens only — no raw hex or px here. */
+
+/* ---------------------------------------------------------------- button */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  font-size: var(--fs-md);
+  line-height: var(--lh-ui);
+  white-space: nowrap;
+  /* Confirmation that a press registered — not an entrance. 120ms is below
+     the threshold where motion reads as animation. */
+  transition:
+    border-color var(--dur-fast) ease,
+    background-color var(--dur-slow) ease,
+    transform 80ms ease;
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.ghost {
+  block-size: 45px;
+  padding: var(--space-8) var(--space-16);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-black);
+  font-weight: var(--fw-regular);
+}
+
+.ghost:hover {
+  border-color: var(--color-muted);
+}
+
+/* Toolbar size. 40px tall with body-size text, matching the clock chip beside
+   it, so the top bar reads as one row of controls rather than two sizes. */
+.small {
+  block-size: 40px;
+  padding: var(--space-8) var(--space-15);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+}
+
+.primary {
+  block-size: 40px;
+  padding: var(--space-5) var(--space-10);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--color-white);
+  font-weight: var(--fw-regular);
+  box-shadow: var(--shadow-button), var(--shadow-button-inset);
+}
+
+/* ------------------------------------------------------------------ chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  block-size: 44px;
+  padding: var(--space-8) var(--space-16);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--fs-md);
+  white-space: nowrap;
+}
+
+.chipLabel {
+  color: var(--color-body);
+  font-weight: var(--fw-regular);
+}
+
+.chipValue {
+  color: var(--color-charcoal);
+  font-weight: var(--fw-semibold);
+}
+
+/* ------------------------------------------------------------------ card */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-24);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+
+/* ------------------------------------------------------------------- tag */
+.tag {
+  transition: background-color var(--dur-slow) ease, border-color var(--dur-slow) ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 50px;
+  block-size: 26px;
+  padding: var(--space-5) var(--space-10);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--color-white);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-ui);
+}
+
+.tagStale {
+  border-color: var(--color-edge);
+  background: transparent;
+  color: var(--color-edge);
+  box-shadow: none;
+}
+
+/* ----------------------------------------------------------------- meter */
+.track {
+  position: relative;
+  inline-size: 100%;
+  block-size: var(--meter-height);
+  border-radius: var(--radius-xs);
+  background: var(--color-page);
+}
+
+/* The switching-margin tick. Stands proud of the track on both edges so it
+   reads as a threshold on the scale rather than a notch in the fill. */
+.mark {
+  position: absolute;
+  inset-block: -4px;
+  inline-size: 2px;
+  border-radius: 1px;
+  background: var(--color-charcoal);
+  transform: translateX(-1px);
+  transition: inset-inline-start var(--dur-slow) var(--ease);
+}
+
+.trackThin {
+  block-size: var(--bar-track-height);
+}
+
+.fill {
+  block-size: 100%;
+  max-inline-size: 100%;
+  border-radius: var(--radius-xs);
+  background: var(--fill-color, var(--accent));
+  transition:
+    inline-size var(--dur-slow) var(--ease),
+    background-color var(--dur-slow) ease;
+}
+
+/* ------------------------------------------------------------ metric tile */
+
+/* No box.
+ *
+ * A tile used to carry a fill, a border and a radius, which put a bordered
+ * box inside a bordered card inside a bordered field — three frames around
+ * one reading. A border earns its place when a thing must be told apart from
+ * a sibling it could be confused with; six readouts under one heading are
+ * already grouped by that heading, and a label sitting above its value is
+ * already a pair. The box was drawing a relationship the type had drawn
+ * first.
+ *
+ * What replaces it is space. The grid gap is now wide enough to separate the
+ * columns on its own, which is why this rule keeps a min-block-size: the
+ * tiles still have to sit on a common rhythm now that nothing outlines them.
+ */
+.tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-6);
+  /* 210px is the designed width; below that the tile shrinks rather than
+     pushing the card open. */
+  min-inline-size: min(210px, 100%);
+  min-block-size: 62px;
+  color: var(--color-strong);
+}
+
+/* Label steps back, value leads — same rule as the environment rows. */
+.tileLabel {
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+}
+
+.tileValue {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-medium);
+  line-height: 1.1;
+}
+
+.tileValueText {
+  font-size: var(--fs-lg);
+}
+
+.tileUnit {
+  color: var(--color-unit);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-regular);
+}
+
+/* Status is categorical, not a quantity. Rendering it at 24px alongside real
+   numbers gave a word the weight of a measurement. */
+.tileStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+}
+
+.tileStatusDot {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--color-accent-green);
+  flex: 0 0 auto;
+}
+
+.tileStatusDotFail {
+  background: var(--color-fail);
+}
+
+.tileStatusDotIdle {
+  background: var(--color-muted);
+}
+
+/* -------------------------------------------------------- section header */
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionTitle {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-medium);
+  color: var(--color-black);
+}
+
+.sectionTitleAccent {
+  color: var(--accent);
+}
+
+.sectionLede {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-regular);
+  color: var(--color-body);
+}

@@ -1,0 +1,106 @@
+/* One sentence explaining an empty state does not need a box drawn round it.
+   It was a bordered panel inside a bordered card, framing a paragraph that was
+   never in danger of being confused with anything else. */
+.empty {
+  max-inline-size: 70ch;
+  color: var(--color-body);
+  font-size: var(--fs-md);
+}
+
+/* A table is the one place horizontal scrolling is acceptable — but it scrolls
+   inside its own box, never the page. */
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  text-align: start;
+}
+
+.metricHead,
+.runHead {
+  padding: 0 var(--space-15) var(--space-10);
+  border-block-end: 1px solid var(--color-border);
+  font-weight: var(--fw-medium);
+  vertical-align: bottom;
+}
+
+.metricHead {
+  padding-inline-start: 0;
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+  /* A th carries a UA text-align: center that beats the table's inherited
+     start, so the column heading has to say so itself. */
+  text-align: start;
+}
+
+/* Both runs are named the same way. Only the product's own name takes the
+   accent — nothing here marks a winner, because nothing has been measured. */
+.runHead {
+  display: table-cell;
+  color: var(--color-charcoal);
+  font-size: var(--fs-md);
+  text-align: end;
+}
+
+.adaptive {
+  color: var(--accent);
+}
+
+.runNote {
+  display: block;
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+}
+
+.metric {
+  padding-block: var(--space-10);
+  padding-inline-end: var(--space-15);
+  color: var(--color-charcoal);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-regular);
+  text-align: start;
+}
+
+.value {
+  padding-block: var(--space-10);
+  padding-inline-start: var(--space-15);
+  color: var(--color-strong);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-medium);
+  text-align: end;
+  white-space: nowrap;
+  /* Both columns share a width, so the two figures for one metric line up
+     digit for digit and the comparison is a glance rather than a calculation. */
+  inline-size: 26%;
+  font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  margin-inline-start: 3px;
+  color: var(--color-unit);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+}
+
+.table tbody tr + tr th,
+.table tbody tr + tr td {
+  border-block-start: 1px solid var(--color-border);
+}
+
+.note {
+  max-inline-size: 70ch;
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
+}
+
+@media (max-width: 600px) {
+  .value {
+    font-size: var(--fs-md);
+    inline-size: 28%;
+  }
+}

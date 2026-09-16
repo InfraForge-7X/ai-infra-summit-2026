@@ -1,0 +1,48 @@
+.payload {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.payloadLabel {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-hint);
+}
+
+/* The one place a monospace face is right: these are literal payloads, and
+   alignment carries meaning. Falls back to the system mono stack — General
+   Sans has no monospace cut. */
+.code {
+  margin: 0;
+  padding: var(--space-15);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-tile);
+  color: var(--color-strong);
+  font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, monospace;
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  overflow-x: auto;
+}
+
+.gap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-15);
+  border: 1px solid var(--accent-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--accent-wash);
+}
+
+.gapTitle {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  color: var(--accent);
+}
+
+.gapBody {
+  font-size: var(--fs-sm);
+  color: var(--color-body);
+}

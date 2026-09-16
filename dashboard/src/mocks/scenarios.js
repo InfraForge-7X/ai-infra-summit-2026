@@ -1,0 +1,332 @@
+/**
+ * MOCK SCENARIOS — demonstration only.
+ *
+ * Each demo control SELECTS one of these. Nothing here is computed: there is
+ * no scoring function, no eligibility test and no switching threshold. If a
+ * function in this file took infrastructure state and returned a target, that
+ * would be the Decision Engine running in the browser, which DoD item #8
+ * forbids and which Tsadok confirmed we should keep out.
+ *
+ * Every scenario is a complete snapshot of what the four read endpoints would
+ * return at that moment, so `App` swaps one object and the whole page follows.
+ *
+ * @typedef {import('./contracts.js').RoutingDecision} RoutingDecision
+ * @typedef {import('./contracts.js').ExecutionResult} ExecutionResult
+ * @typedef {import('./contracts.js').InfrastructureState} InfrastructureState
+ * @typedef {import('./contracts.js').ExecutionTarget} ExecutionTarget
+ * @typedef {import('./fixtures.js').RoutingEvent} RoutingEvent
+ */
+
+import { candidates, history as baseHistory, infrastructure, rank } from './fixtures.js'
+
+/**
+ * @typedef {object} ApiError
+ * @property {422 | 500 | 503} status
+ * @property {string} title
+ * @property {string} body
+ * @property {boolean} showsLastKnownState  True when the page below stays
+ *   visible but is no longer current.
+ */
+
+/**
+ * @typedef {object} Baseline
+ * @property {ExecutionTarget} target
+ * @property {number | null} fps
+ * @property {number} network_latency_ms
+ * @property {number} reroutes
+ * @property {number} failed_frames
+ */
+
+/**
+ * @typedef {object} Scenario
+ * @property {string} label            Shown in the guide strip
+ * @property {string} caption          What just happened, in one sentence
+ * @property {RoutingDecision | null} decision
+ * @property {ExecutionResult | null} execution
+ * @property {Record<ExecutionTarget, InfrastructureState>} states
+ * @property {RoutingEvent[]} history
+ * @property {ApiError | null} [error]
+ * @property {Baseline | null} [baseline]
+ * @property {ExecutionTarget | null} [staleTarget]
+ * @property {boolean} [held]
+ */
+
+/** @param {number} secondsAgo */
+function staleStates(target, secondsAgo = 14) {
+  const states = infrastructure()
+  states[target] = {
+    ...states[target],
+    timestamp: new Date(Date.now() - secondsAgo * 1000).toISOString(),
+  }
+  return states
+}
+
+/** @param {Partial<RoutingDecision>} overrides @returns {RoutingDecision} */
+const decisionOf = (overrides) => ({
+  task_id: 'task-001',
+  target: 'cloud',
+  score: 0.61,
+  reasons: ['Latency within requirement'],
+  // Every decision carries a ranking — the contract requires a non-empty list,
+  // and a scenario without one would be a shape the API can never produce.
+  ranked_candidates: candidates,
+  ...overrides,
+})
+
+/** @param {Partial<ExecutionResult>} overrides @returns {ExecutionResult} */
+const executionOf = (overrides) => ({
+  task_id: 'task-001',
+  target: 'cloud',
+  status: 'running',
+  execution_time_ms: 82000,
+  network_latency_ms: 73,
+  fps: 17,
+  ...overrides,
+})
+
+/** @type {Record<string, Scenario>} */
+export const SCENARIOS = {
+  running: {
+    label: 'Running on CLOUD',
+    caption:
+      'Target, score and reasons come from the Routing API. The frontend only displays them.',
+    decision: decisionOf({
+      reasons: [
+        'Latency within requirement',
+        'GPU available',
+        'Compute headroom available',
+        'Network stable',
+      ],
+    }),
+    execution: executionOf({}),
+    states: infrastructure(),
+    history: baseHistory,
+  },
+
+  // The reroute goes to EDGE rather than LOCAL, because the demo workload
+  // requires a GPU and LOCAL does not have one. Sending it to LOCAL made the
+  // headline contradict the ranking directly beneath it, and a judge who spots
+  // that stops believing the rest of the numbers.
+  rerouted: {
+    label: 'Rerouted to EDGE',
+    caption:
+      'Conditions changed, so the workload moved. The accent colour follows the target.',
+    decision: decisionOf({
+      target: 'edge',
+      score: 0.74,
+      reasons: [
+        'Cloud network latency exceeded the requirement',
+        'GPU available',
+        'Compute headroom available',
+      ],
+      ranked_candidates: rank([
+        ['edge', 0.74, { latency: 0.88, resources: 0.7, network: 0.79, reliability: 0.68, cost: 0.54 }],
+        ['cloud', 0.58, { latency: 0.41, resources: 0.69, network: 0.52, reliability: 0.64, cost: 0.31 }],
+        ['local', null, {}, ['GPU required by the workload is not available on this target']],
+      ]),
+    }),
+    execution: executionOf({ target: 'edge', network_latency_ms: 12, fps: 28 }),
+    states: infrastructure(),
+    history: [
+      {
+        id: 'ev-reroute',
+        time: '03:21:04',
+        kind: 'reroute',
+        from: 'cloud',
+        target: 'edge',
+        score: 0.74,
+        reason: 'Cloud network latency exceeded the requirement',
+      },
+      ...baseHistory,
+    ],
+  },
+
+  // §9 anti-flapping. A better target exists but the gain is under the
+  // switching margin, so nothing moved. Most teams will not show this.
+  held: {
+    label: 'Held on CLOUD',
+    caption:
+      'A better target exists, but the gain is under the switching threshold — so the workload did not move. That is the anti-flapping policy working.',
+    held: true,
+    decision: decisionOf({
+      score: 0.63,
+      reasons: ['Gain below switching threshold — holding current target'],
+      // The ranking is what makes this scenario legible: EDGE is genuinely
+      // first and the workload stayed on CLOUD anyway, because 0.68 - 0.63 is
+      // under the 0.08 switching margin. Without the list you have to take the
+      // sentence on trust; with it, the policy is visible on its face.
+      ranked_candidates: rank([
+        ['edge', 0.68, { latency: 0.84, resources: 0.58, network: 0.71, reliability: 0.6, cost: 0.55 }],
+        ['cloud', 0.63, { latency: 0.72, resources: 0.7, network: 0.74, reliability: 0.68, cost: 0.31 }],
+        ['local', null, {}, ['GPU required by the workload is not available on this target']],
+      ]),
+    }),
+    execution: executionOf({}),
+    states: infrastructure(),
+    history: [
+      {
+        id: 'ev-hold',
+        time: '03:21:10',
+        kind: 'hold',
+        target: 'cloud',
+        score: 0.63,
+        reason: 'Gain below switching threshold',
+      },
+      ...baseHistory,
+    ],
+  },
+
+  stale: {
+    label: 'EDGE stopped reporting',
+    caption:
+      'The reading is old, so the card is marked stale. Whether that makes the target ineligible is the engine’s judgement, and no contract carries it.',
+    staleTarget: 'edge',
+    decision: decisionOf({ reasons: ['Latency within requirement', 'Network stable'] }),
+    execution: executionOf({}),
+    states: staleStates('edge'),
+    history: baseHistory,
+  },
+
+  // §21: no eligible target is an explicit outcome, not a crash.
+  routingFailed: {
+    label: 'Routing failed',
+    caption: 'No eligible target is available. Nothing was dispatched. This is a recorded outcome, not an error page.',
+    decision: null,
+    execution: null,
+    states: infrastructure(),
+    history: [
+      {
+        id: 'ev-fail',
+        time: '03:21:18',
+        kind: 'failure',
+        target: 'cloud',
+        score: 0,
+        reason: 'Every environment failed a hard constraint',
+      },
+      ...baseHistory,
+    ],
+  },
+
+  timeout: {
+    label: 'Execution timed out',
+    caption: 'The failure is recorded, then AFRI-EDGE re-evaluates and tries another target.',
+    decision: decisionOf({}),
+    execution: executionOf({ status: 'timeout', execution_time_ms: 30000, fps: null }),
+    states: infrastructure(),
+    history: [
+      {
+        id: 'ev-timeout',
+        time: '03:21:26',
+        kind: 'failure',
+        target: 'cloud',
+        score: 0.61,
+        reason: 'Execution timed out — re-evaluating',
+      },
+      ...baseHistory,
+    ],
+  },
+
+  error503: {
+    label: 'Routing service unreachable',
+    caption: 'A 503 tells you the view is stale rather than pretending everything is fine.',
+    error: {
+      status: 503,
+      title: 'Routing service unavailable',
+      body: 'The decision service or infrastructure state is not reachable. You are seeing the last known state; nothing new has been routed.',
+      showsLastKnownState: true,
+    },
+    decision: decisionOf({}),
+    execution: executionOf({}),
+    states: infrastructure(),
+    history: baseHistory,
+  },
+
+  error422: {
+    label: 'Workload rejected',
+    caption: 'A 422 names what to fix instead of showing a generic error.',
+    error: {
+      status: 422,
+      title: 'Workload rejected',
+      body: 'The routing service could not accept this workload. Check the latency requirement and compute requirement, then route again.',
+      showsLastKnownState: false,
+    },
+    decision: null,
+    execution: null,
+    states: infrastructure(),
+    history: baseHistory,
+  },
+
+  error500: {
+    label: 'Unexpected error',
+    caption: 'A 500 is neither stale data nor bad input — there is nothing to fix from here.',
+    error: {
+      status: 500,
+      title: 'Unexpected internal error',
+      body: 'The routing service failed in a way it did not expect. Nothing was dispatched. Try again, and if it persists this is a backend issue rather than a workload one.',
+      showsLastKnownState: false,
+    },
+    decision: null,
+    execution: null,
+    states: infrastructure(),
+    history: baseHistory,
+  },
+
+  // §29.6 step 5 — a speech workload, to show the routing core is
+  // workload-agnostic (§29.2). Speech has no frames, so `fps` is null and the
+  // metric reads as an em dash. That is the contract working, not a gap.
+  speech: {
+    label: 'Running a speech workload',
+    caption:
+      'Same routing core, different modality. Frames per second has no value for speech, so it reads as an em dash rather than zero.',
+    decision: decisionOf({
+      target: 'edge',
+      score: 0.68,
+      reasons: ['Latency within requirement', 'Compute headroom available'],
+      ranked_candidates: rank([
+        ['edge', 0.68, { latency: 0.86, resources: 0.61, network: 0.7, reliability: 0.62, cost: 0.55 }],
+        ['cloud', 0.62, { latency: 0.7, resources: 0.71, network: 0.73, reliability: 0.67, cost: 0.31 }],
+        ['local', null, {}, ['GPU required by the workload is not available on this target']],
+      ]),
+    }),
+    execution: executionOf({ target: 'edge', network_latency_ms: 18, fps: null }),
+    states: infrastructure(),
+    history: [
+      {
+        id: 'ev-speech',
+        time: '03:22:02',
+        kind: 'decision',
+        target: 'edge',
+        score: 0.68,
+        reason: 'Latency within requirement',
+      },
+      ...baseHistory,
+    ],
+  },
+
+  idle: {
+    label: 'No workload running',
+    caption: 'Start a workload and AFRI-EDGE picks an execution target.',
+    decision: null,
+    execution: null,
+    states: infrastructure(),
+    history: [],
+  },
+}
+
+/**
+ * §19 baseline: a fixed destination, run under the same conditions.
+ * Demonstration values. §29.7 forbids claiming an improvement before
+ * measurement, and the panel says so on its face.
+ *
+ * @type {Baseline}
+ */
+export const BASELINE = {
+  target: 'cloud',
+  fps: 14,
+  // 940 was the bandwidth figure (940 Mbps) in a latency field — a 940ms
+  // network latency is not a plausible reading, and an implausible number is
+  // the fastest way to lose a judge's trust in every other number on screen.
+  network_latency_ms: 74,
+  reroutes: 0,
+  failed_frames: 2,
+}

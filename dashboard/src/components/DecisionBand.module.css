@@ -1,0 +1,253 @@
+.band {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) repeat(2, minmax(280px, 1fr));
+  gap: var(--space-21);
+  align-items: stretch;
+}
+
+@keyframes reroute {
+  from {
+    background-color: var(--accent-wash);
+  }
+}
+
+.card,
+.targetCard {
+  display: flex;
+  flex-direction: column;
+  animation: reroute 1s var(--ease);
+  min-block-size: 271px;
+  padding: var(--space-18) var(--space-27) var(--space-19);
+  border-radius: var(--radius-2xl);
+  background: var(--color-surface);
+  filter: drop-shadow(var(--shadow-drop));
+}
+
+/* ------------------------------------------------------------ target card */
+.targetCard {
+  position: relative;
+  justify-content: space-between;
+  overflow: hidden;
+  transition: background-color var(--dur-slow) ease, transform var(--dur-slow) ease;
+  gap: var(--space-27);
+  background-color: var(--accent);
+  background-image: var(--accent-image);
+  background-size: cover;
+  background-position: center;
+  color: var(--color-white);
+  box-shadow: 0 14px 34px rgb(0 0 0 / 12%);
+}
+
+/* A restrained infrastructure-style glow gives the selected environment
+   stronger visual priority without introducing another status signal. */
+.targetCard::after {
+  position: absolute;
+  inset-inline-end: -56px;
+  inset-block-end: -72px;
+  inline-size: 180px;
+  block-size: 180px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 24px rgb(255 255 255 / 6%), 0 0 0 48px rgb(255 255 255 / 3%);
+  content: '';
+  pointer-events: none;
+}
+
+.targetLabel {
+  position: relative;
+  z-index: 1;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-card);
+  letter-spacing: 0.01em;
+}
+
+.targetBody {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-15);
+}
+
+.targetName {
+  display: flex;
+  align-items: center;
+  gap: var(--space-15);
+}
+
+.glyph {
+  display: grid;
+  place-items: center;
+  inline-size: 52px;
+  block-size: 52px;
+  border: 2px solid var(--accent-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 12%);
+}
+
+.name {
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-display);
+}
+
+.caption {
+  max-inline-size: 30ch;
+  color: var(--color-on-accent);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.status {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-card);
+}
+
+/* A bare green dot vanished on the LOCAL card, which is also green. The ring
+   separates it from whatever background it lands on. */
+.dot {
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: 50%;
+  background: var(--color-accent-green);
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 45%);
+}
+
+.fail {
+  background: var(--color-fail);
+}
+
+.idle {
+  background: var(--color-white);
+  opacity: 0.6;
+}
+
+/* -------------------------------------------------- score and reason cards */
+.cardTitle {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-card);
+  color: var(--color-charcoal);
+}
+
+/* The score and its meter are one reading. Pushing the meter to the bottom of
+   a 271px card left a gap between them and made the pair read as two things. */
+.score {
+  margin-block: var(--space-19) var(--space-16);
+  color: var(--color-charcoal);
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-display);
+}
+
+.scoreUnit {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-regular);
+}
+
+.meterFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-block-start: var(--space-10);
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
+}
+
+/* The caption belongs to the tick above it, so it carries the same mark. */
+.margin {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  color: var(--color-charcoal);
+}
+
+.marginTick {
+  inline-size: 2px;
+  block-size: 10px;
+  border-radius: 1px;
+  background: var(--color-charcoal);
+}
+
+.scoreNote {
+  margin-block: var(--space-16) auto;
+  max-inline-size: 40ch;
+  color: var(--color-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.reasons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-block-start: var(--space-10);
+}
+
+.reason {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  color: var(--color-charcoal);
+  font-size: var(--fs-md);
+  line-height: var(--lh-card);
+}
+
+.bullet {
+  transition: background-color var(--dur-slow) ease;
+  flex: 0 0 auto;
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Pinning this to the bottom left ~120px of dead space when `reasons` had one
+   entry, and the contract only guarantees one. It now follows the list. */
+.reasonsAction {
+  margin-block-start: var(--space-15);
+}
+
+@media (max-width: 960px) {
+  .band {
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .card,
+  .targetCard {
+    min-block-size: 0;
+    padding: var(--space-18) var(--space-20) var(--space-19);
+  }
+
+  .name {
+    font-size: var(--fs-3xl);
+  }
+
+  .glyph {
+    inline-size: 46px;
+    block-size: 46px;
+  }
+}
+
+/* Two columns fit here but three do not, so the reasons card was landing alone
+   on the second row at half width with a hole beside it. Let it take the whole
+   row: a list of reasons reads perfectly well wide, and the alternative is a
+   gap that looks like something failed to load. */
+@media (min-width: 601px) and (max-width: 960px) {
+  .band > :last-child {
+    grid-column: 1 / -1;
+    min-block-size: 0;
+  }
+}

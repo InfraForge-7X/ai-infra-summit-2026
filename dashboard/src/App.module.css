@@ -1,0 +1,96 @@
+.page {
+  min-block-size: 100%;
+  padding: 14px var(--layout-gutter) var(--space-40);
+  background: var(--color-white);
+}
+
+.inner {
+  max-inline-size: var(--layout-content);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+/* Everything below the guide strip sits in one bordered field, matching the
+   frame. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  padding: var(--space-26) var(--space-25) var(--space-26) var(--space-34);
+  border: 2px solid var(--accent-border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--color-page);
+}
+
+.stackHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-24);
+}
+
+.split {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-30);
+}
+
+/* §29.7 forbids implying a result before measurement, and the brief names
+   "clearly marked mock data" as a deliverable. A quiet outlined pill was the
+   least prominent thing on the page. Full width, accent-washed, with a solid
+   accent edge — visible without shouting. */
+.mockFlag {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-10) var(--space-16);
+  border: 1px solid var(--accent-border-soft);
+  border-inline-start: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--accent-wash);
+  color: var(--color-body);
+  font-size: var(--fs-md);
+}
+
+.mockFlag strong {
+  color: var(--accent);
+  font-weight: var(--fw-semibold);
+}
+
+.loading {
+  padding: var(--space-26) var(--space-34);
+  color: var(--color-body);
+  font-size: var(--fs-md);
+}
+
+/* The history rail is 552px by design; below roughly that plus the execution
+   card it wraps instead of crushing both. */
+.split {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .stack {
+    padding: var(--space-20);
+  }
+
+  .stackHead {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-inline: var(--space-10);
+  }
+
+  .stack {
+    padding: var(--space-16);
+  }
+
+  .split {
+    gap: var(--space-16);
+  }
+}
