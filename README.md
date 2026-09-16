@@ -70,6 +70,8 @@ Feedback & Re-evaluation
 
 The initial runtime uses **Python 3.11 + FastAPI** and is containerized with Docker/Docker Compose.
 
+See [Getting Started](docs/how-to-start.md) for setup and run instructions.
+
 The first vertical slice is the routing flow:
 
 `POST /route → Workload Profile → Infrastructure State → Decision Engine → Routing Decision`
