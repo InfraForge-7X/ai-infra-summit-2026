@@ -5,7 +5,10 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY src ./src
 
-RUN pip install --no-cache-dir "fastapi>=0.115,<1.0" "uvicorn[standard]>=0.30,<1.0"
+RUN pip install --no-cache-dir \
+    "fastapi>=0.115,<1.0" \
+    "uvicorn[standard]>=0.30,<1.0" \
+    "psutil>=5.9,<7.0"
 
 EXPOSE 8000
 
